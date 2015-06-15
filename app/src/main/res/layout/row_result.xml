@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/results_row"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal">
+
+    <ImageView
+        android:id="@+id/result_artist_thumb"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_margin="10dp"
+        android:layout_weight="1"
+        android:contentDescription="Artist thumbnail"
+        android:src="@drawable/abc_ratingbar_full_material" />
+
+    <TextView
+        android:id="@+id/result_artist_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_weight="2"
+        android:text="@string/result_artist_title"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+</LinearLayout>
