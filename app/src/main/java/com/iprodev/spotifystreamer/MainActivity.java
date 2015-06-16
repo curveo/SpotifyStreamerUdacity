@@ -1,15 +1,19 @@
 package com.iprodev.spotifystreamer;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.BaseAdapter;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -28,49 +32,83 @@ import kaaes.spotify.webapi.android.models.ArtistsPager;
 import kaaes.spotify.webapi.android.models.Image;
 
 public class MainActivity extends AppCompatActivity {
+
+    public static final String TAG = "MainActivity";
     private ResultsAdapter mResultsAdapter;
     private ArrayList<Artist> mResults;
+    private ListView mResultsList;
 
+//    @Override
+//    public boolean onKeyUp(int keyCode, KeyEvent event) {
+//        return super.onKeyUp(keyCode, event);
+//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        final ListView resultsList = (ListView) findViewById(R.id.results_artists_list);
-        new Thread(new Runnable() {
+
+        EditText mSearchText = (EditText) findViewById(R.id.search_main);
+        mSearchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
-            public void run() {
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                boolean handled = false;
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    loadSearchData(v.getText().toString());
+                    handled = true;
+                }
+                return handled;
+            }
+        });
+
+//        mSearchText.setOnKeyListener(new View.OnKeyListener() {
+//            @Override
+//            public boolean onKey(View v, int keyCode, KeyEvent event) {
+//                String input = ((EditText)v).getText().toString();
+//                if(input.length() > 1) {
+//                    loadSearchData(input);
+//                }
+//                return false;
+//            }
+//        });
+        mResultsList = (ListView) findViewById(R.id.results_artists_list);
+//        loadSearchData("Foo Fighters");
+    }
+
+    private void loadSearchData(final String search) {
+        new AsyncTask<Void,Void,Void>() {
+
+            @Override
+            protected Void doInBackground(Void... params) {
                 SpotifyApi api = new SpotifyApi();
                 SpotifyService spotify = api.getService();
-                ArtistsPager results = spotify.searchArtists("Beyonce");
-                Log.d("MainActivity", results.toString());
-                for(Artist al: results.artists.items) {
-                    if(mResults == null) {
-                        mResults = new ArrayList<Artist>();
-                    }
-                    mResults.add(al);
-
+                ArtistsPager results = spotify.searchArtists(search);
+                Log.d(TAG, results.toString());
+                if (mResults == null) {
+                    mResults = new ArrayList<Artist>();
+                } else {
+                    mResults.clear();
                 }
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if(mResults.size() > 0) {
-                            if(mResultsAdapter == null) {
-                                mResultsAdapter = new ResultsAdapter(MainActivity.this, mResults);
-                                resultsList.setAdapter(mResultsAdapter);
-//                                resultsList.notify();
-
-                            }
-
-                        } else {
-                            //TODO: Set the list to "no results
-                        }
-
-                    }
-                });
-//
+                mResults.addAll(results.artists.items);
+                return null;
             }
-        }).start();
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                if(mResults.size() > 0) {
+                    if(mResultsAdapter == null) {
+                        mResultsAdapter = new ResultsAdapter(MainActivity.this, mResults);
+                        mResultsList.setAdapter(mResultsAdapter);
+                    }
+                    mResultsAdapter.notifyDataSetChanged();
+
+
+                } else {
+                    //TODO: Set the list to "no results
+                }
+                updateUI();
+            }
+        }.execute();
     }
 
     @Override
@@ -105,6 +143,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+    }
+
+    private void updateUI() {
+        findViewById(R.id.noresults_text).setVisibility((mResults.size() == 0) ? View.VISIBLE:View.GONE);
+        mResultsList.setVisibility((mResults.size() == 0) ? View.GONE:View.VISIBLE);
     }
 
     public static class ResultsAdapter extends BaseAdapter {
