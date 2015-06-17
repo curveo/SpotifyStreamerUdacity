@@ -4,6 +4,8 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -13,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -37,42 +40,65 @@ public class MainActivity extends AppCompatActivity {
     private ResultsAdapter mResultsAdapter;
     private ArrayList<Artist> mResults;
     private ListView mResultsList;
-
-//    @Override
-//    public boolean onKeyUp(int keyCode, KeyEvent event) {
-//        return super.onKeyUp(keyCode, event);
-//    }
+    private EditText mSearchText;
+    private Button mClearSearchBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mResults = new ArrayList<Artist>();
+        mClearSearchBtn = (Button) findViewById(R.id.search_main_clear_btn);
+        mSearchText = (EditText) findViewById(R.id.search_main);
+        mResultsList = (ListView) findViewById(R.id.results_artists_list);
+        setHandlers();
+    }
 
-        EditText mSearchText = (EditText) findViewById(R.id.search_main);
-        mSearchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+    @Override
+    protected void onResume() {
+        super.onResume();
+//        loadSearchData("Foo Fighters");
+    }
+
+    private void setHandlers() {
+        mSearchText.addTextChangedListener(new TextWatcher() {
             @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                boolean handled = false;
-                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    loadSearchData(v.getText().toString());
-                    handled = true;
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { /* Not implemented */}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { /* Not implemented */}
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                String input = mSearchText.getText().toString();
+                //Enable the clear button if there is any text.
+                mClearSearchBtn.setVisibility((input.length() > 0) ? View.VISIBLE : View.GONE);
+                //Only search if there are 3 characters or more.
+                if(input.length() >= 3) {
+                    loadSearchData(input);
                 }
-                return handled;
             }
         });
-
-//        mSearchText.setOnKeyListener(new View.OnKeyListener() {
+//        mSearchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 //            @Override
-//            public boolean onKey(View v, int keyCode, KeyEvent event) {
-//                String input = ((EditText)v).getText().toString();
-//                if(input.length() > 1) {
-//                    loadSearchData(input);
+//            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+//                boolean handled = false;
+//                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+//                    loadSearchData(v.getText().toString());
+//                    handled = true;
 //                }
-//                return false;
+//                return handled;
 //            }
 //        });
-        mResultsList = (ListView) findViewById(R.id.results_artists_list);
-//        loadSearchData("Foo Fighters");
+        mClearSearchBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mSearchText.setText("");
+                mClearSearchBtn.setVisibility(View.GONE);
+                mResults.clear();
+                mResultsAdapter.notifyDataSetChanged();
+            }
+        });
     }
 
     private void loadSearchData(final String search) {
@@ -144,7 +170,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-
     private void updateUI() {
         findViewById(R.id.noresults_text).setVisibility((mResults.size() == 0) ? View.VISIBLE:View.GONE);
         mResultsList.setVisibility((mResults.size() == 0) ? View.GONE:View.VISIBLE);
@@ -191,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
             Artist result = getItem(position);
             if(result.images.size() > 0 ) {
                 for(Image thumbUrl: result.images) {
-                    //TODO conditionaly grab the correct url based on size.
+                    //TODO conditionally grab the correct url based on size.
                 }
                 Picasso.with(mContext).load(result.images.get(0).url).into(holder.mImageV);
             }
