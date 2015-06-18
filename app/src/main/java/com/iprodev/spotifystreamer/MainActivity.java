@@ -1,6 +1,7 @@
 package com.iprodev.spotifystreamer;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -14,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -23,6 +25,11 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 
 import javax.xml.transform.Result;
@@ -34,9 +41,10 @@ import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
 import kaaes.spotify.webapi.android.models.Image;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     public static final String TAG = "MainActivity";
+
     private ResultsAdapter mResultsAdapter;
     private ArrayList<Artist> mResults;
     private ListView mResultsList;
@@ -47,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         mResults = new ArrayList<Artist>();
         mClearSearchBtn = (Button) findViewById(R.id.search_main_clear_btn);
         mSearchText = (EditText) findViewById(R.id.search_main);
@@ -57,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-//        loadSearchData("Foo Fighters");
+        loadSearchData("Foo Fighters");
     }
 
     private void setHandlers() {
@@ -99,6 +108,23 @@ public class MainActivity extends AppCompatActivity {
                 mResultsAdapter.notifyDataSetChanged();
             }
         });
+
+        mResultsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Artist artist = (Artist) adapterView.getAdapter().getItem(i);
+                Log.d(TAG, "artist id: " + artist.id);
+//                String artistName = i.getStringExtra("artist_name");
+//                String artitsId = i.getStringExtra("artist_id");
+                Intent intent = new Intent(MainActivity.this, ArtistActivity.class);
+                intent.putExtra("artist_name", artist.name);
+                intent.putExtra("artist_id", artist.id);
+                startActivity(intent);
+
+                //TODO: launch top ten activity
+
+            }
+        });
     }
 
     private void loadSearchData(final String search) {
@@ -106,9 +132,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             protected Void doInBackground(Void... params) {
-                SpotifyApi api = new SpotifyApi();
-                SpotifyService spotify = api.getService();
-                ArtistsPager results = spotify.searchArtists(search);
+                ArtistsPager results = getService().searchArtists(search);
                 Log.d(TAG, results.toString());
                 if (mResults == null) {
                     mResults = new ArrayList<Artist>();
@@ -215,11 +239,44 @@ public class MainActivity extends AppCompatActivity {
             }
             Artist result = getItem(position);
             if(result.images.size() > 0 ) {
+                Image thumb = null;
                 for(Image thumbUrl: result.images) {
                     //TODO conditionally grab the correct url based on size.
+                    if(thumbUrl.height >= 100 && thumbUrl.height <= 300) {
+                        thumb = thumbUrl;
+                    }
                 }
-                Picasso.with(mContext).load(result.images.get(0).url).into(holder.mImageV);
+//                new AsyncTask<String, Void, Void>() {
+//
+//                    @Override
+//                    protected Void doInBackground(String... strings) {
+//                        String url = strings[0];
+//                        try {
+//                            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+//                            InputStream in = new BufferedInputStream(conn.getInputStream());
+//                            byte[] buffer = new byte[1024];
+//                            while(in.read() != -1) {
+//
+//                            }
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                        }
+//
+//
+//                        return null;
+//                    }
+//
+//                    @Override
+//                    protected void onPostExecute(Void aVoid) {
+//                        super.onPostExecute(aVoid);
+//                    }
+//                }.execute(result.images.get(0).url);
+
+                Picasso.with(mContext).load(thumb.url).into(holder.mImageV);
+            } else {
+                holder.mImageV.setImageResource(R.drawable.artist_placeholder);
             }
+            holder.mArtist.setTag(result);
             holder.mArtist.setText(result.name);
 
             return convertView;
