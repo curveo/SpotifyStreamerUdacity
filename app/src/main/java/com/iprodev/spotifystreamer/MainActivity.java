@@ -23,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.iprodev.spotifystreamer.com.iprodev.spotifystreamer.model.ArtistsAdaper;
 import com.squareup.picasso.Picasso;
 
 import java.io.BufferedInputStream;
@@ -45,7 +46,7 @@ public class MainActivity extends BaseActivity {
 
     public static final String TAG = "MainActivity";
 
-    private ResultsAdapter mResultsAdapter;
+    private ArtistsAdaper mResultsAdapter;
     private ArrayList<Artist> mResults;
     private ListView mResultsList;
     private EditText mSearchText;
@@ -66,7 +67,7 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadSearchData("Foo Fighters");
+//        loadSearchData("Foo Fighters");
     }
 
     private void setHandlers() {
@@ -147,7 +148,7 @@ public class MainActivity extends BaseActivity {
             protected void onPostExecute(Void aVoid) {
                 if(mResults.size() > 0) {
                     if(mResultsAdapter == null) {
-                        mResultsAdapter = new ResultsAdapter(MainActivity.this, mResults);
+                        mResultsAdapter = new ArtistsAdaper(MainActivity.this, mResults);
                         mResultsList.setAdapter(mResultsAdapter);
                     }
                     mResultsAdapter.notifyDataSetChanged();
@@ -197,94 +198,5 @@ public class MainActivity extends BaseActivity {
     private void updateUI() {
         findViewById(R.id.noresults_text).setVisibility((mResults.size() == 0) ? View.VISIBLE:View.GONE);
         mResultsList.setVisibility((mResults.size() == 0) ? View.GONE:View.VISIBLE);
-    }
-
-    public static class ResultsAdapter extends BaseAdapter {
-        private Context mContext;
-        private ArrayList<Artist> mResults;
-
-        public ResultsAdapter(Context c, ArrayList<Artist> results) {
-            mContext = c;
-            mResults = results;
-        }
-
-        @Override
-        public int getCount() {
-            return mResults.size();
-        }
-
-        @Override
-        public Artist getItem(int position) {
-            return mResults.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return 0;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-           //ViewHolder design patter for scroll performance.
-            ViewHolder holder;
-            if(convertView == null) {
-                LayoutInflater inflator = LayoutInflater.from(mContext);
-                convertView = inflator.inflate(R.layout.row_result, parent, false);
-                holder = new ViewHolder();
-                holder.mImageV = (ImageView) convertView.findViewById(R.id.result_artist_thumb);
-                holder.mArtist = (TextView) convertView.findViewById(R.id.result_artist_name);
-                convertView.setTag(holder);
-            } else {
-                holder = (ViewHolder) convertView.getTag();
-            }
-            Artist result = getItem(position);
-            if(result.images.size() > 0 ) {
-                Image thumb = null;
-                for(Image thumbUrl: result.images) {
-                    //TODO conditionally grab the correct url based on size.
-                    if(thumbUrl.height >= 100 && thumbUrl.height <= 300) {
-                        thumb = thumbUrl;
-                    }
-                }
-//                new AsyncTask<String, Void, Void>() {
-//
-//                    @Override
-//                    protected Void doInBackground(String... strings) {
-//                        String url = strings[0];
-//                        try {
-//                            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-//                            InputStream in = new BufferedInputStream(conn.getInputStream());
-//                            byte[] buffer = new byte[1024];
-//                            while(in.read() != -1) {
-//
-//                            }
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
-//
-//
-//                        return null;
-//                    }
-//
-//                    @Override
-//                    protected void onPostExecute(Void aVoid) {
-//                        super.onPostExecute(aVoid);
-//                    }
-//                }.execute(result.images.get(0).url);
-
-                Picasso.with(mContext).load(thumb.url).into(holder.mImageV);
-            } else {
-                holder.mImageV.setImageResource(R.drawable.artist_placeholder);
-            }
-            holder.mArtist.setTag(result);
-            holder.mArtist.setText(result.name);
-
-            return convertView;
-        }
-
-        class ViewHolder {
-            ImageView mImageV;
-            TextView mArtist;
-        }
     }
 }
