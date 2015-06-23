@@ -53,11 +53,17 @@
         android:id="@+id/noresults_text"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="250dp"
         android:layout_centerInParent="true"
         android:gravity="center"
         android:text="@string/noresults"
         android:textSize="@dimen/large_font"
-        android:visibility="visible" />
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/spot_icon"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_centerInParent="true"
+        android:src="@drawable/spotify_icon"/>
 
 </RelativeLayout>

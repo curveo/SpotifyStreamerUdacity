@@ -51,6 +51,7 @@ public class MainActivity extends BaseActivity {
     private ListView mResultsList;
     private EditText mSearchText;
     private Button mClearSearchBtn;
+    private ImageView mSpotIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +62,7 @@ public class MainActivity extends BaseActivity {
         mClearSearchBtn = (Button) findViewById(R.id.search_main_clear_btn);
         mSearchText = (EditText) findViewById(R.id.search_main);
         mResultsList = (ListView) findViewById(R.id.results_artists_list);
+        mSpotIcon = (ImageView)findViewById(R.id.spot_icon);
         setHandlers();
     }
 
@@ -103,8 +105,7 @@ public class MainActivity extends BaseActivity {
         mClearSearchBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mSearchText.setText("");
-                mClearSearchBtn.setVisibility(View.GONE);
+                updateUI(true);
                 mResults.clear();
                 mResultsAdapter.notifyDataSetChanged();
             }
@@ -115,8 +116,6 @@ public class MainActivity extends BaseActivity {
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Artist artist = (Artist) adapterView.getAdapter().getItem(i);
                 Log.d(TAG, "artist id: " + artist.id);
-//                String artistName = i.getStringExtra("artist_name");
-//                String artitsId = i.getStringExtra("artist_id");
                 Intent intent = new Intent(MainActivity.this, ArtistActivity.class);
                 intent.putExtra("artist_name", artist.name);
                 intent.putExtra("artist_id", artist.id);
@@ -152,12 +151,8 @@ public class MainActivity extends BaseActivity {
                         mResultsList.setAdapter(mResultsAdapter);
                     }
                     mResultsAdapter.notifyDataSetChanged();
-
-
-                } else {
-                    //TODO: Set the list to "no results
                 }
-                updateUI();
+                updateUI(false);
             }
         }.execute();
     }
@@ -195,8 +190,19 @@ public class MainActivity extends BaseActivity {
 
 
     }
-    private void updateUI() {
-        findViewById(R.id.noresults_text).setVisibility((mResults.size() == 0) ? View.VISIBLE:View.GONE);
-        mResultsList.setVisibility((mResults.size() == 0) ? View.GONE:View.VISIBLE);
+    private void updateUI(boolean clearUI) {
+        View noResults = (View) findViewById(R.id.noresults_text);
+        if (!clearUI) {
+            mSpotIcon.setVisibility(View.GONE);
+            noResults.setVisibility((mResults.size() == 0) ? View.VISIBLE : View.GONE);
+            mResultsList.setVisibility((mResults.size() == 0) ? View.GONE : View.VISIBLE);
+        } else {
+            mSearchText.setText("");
+            mClearSearchBtn.setVisibility(View.GONE);
+            mSpotIcon.setVisibility(View.VISIBLE);
+            noResults.setVisibility(View.GONE);
+        }
+    }
+
     }
 }
