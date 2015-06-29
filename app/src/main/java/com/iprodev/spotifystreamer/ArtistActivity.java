@@ -1,38 +1,21 @@
 package com.iprodev.spotifystreamer;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.util.ArrayMap;
+import android.support.v7.app.ActionBar;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.ImageView;
-import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.iprodev.spotifystreamer.com.iprodev.spotifystreamer.model.TracksAdapter;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
 
-import kaaes.spotify.webapi.android.models.Artist;
-import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.Tracks;
-import retrofit.Callback;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
 
 
 public class ArtistActivity extends BaseActivity {
@@ -52,12 +35,13 @@ public class ArtistActivity extends BaseActivity {
         setContentView(R.layout.activity_artist);
         mTracksListView = (ListView) findViewById(R.id.results_artists_tracks_list);
         loadTracks(artitsId);
-
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setSubtitle(artistName);
+        actionBar.setDisplayHomeAsUpEnabled(true);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_artist, menu);
         return true;
     }
@@ -82,26 +66,24 @@ public class ArtistActivity extends BaseActivity {
                         mAdapter = new TracksAdapter(ArtistActivity.this, mTracks);
                     mTracksListView.setAdapter(mAdapter);
                     mAdapter.notifyDataSetChanged();
-
                 }
-
             }
         }.execute(artistId);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                //Lets use the activity backstack instead so the state of the search results is
+                // maintained.
+                onBackPressed();
+                return true;
+            case R.id.action_settings:
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-
-        return super.onOptionsItemSelected(item);
     }
 
 }
