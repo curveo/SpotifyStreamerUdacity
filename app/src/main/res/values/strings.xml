@@ -7,4 +7,6 @@
     <string name="result_artist_title">Juju and the juicers</string>
     <string name="noresults">No results found</string>
     <string name="title_activity_artist">Top 10 tracks</string>
+    <string name="no_tracks">No top tracks for this artist</string>
+    <string name="alert_dialog_ok">Ok</string>
 </resources>

@@ -20,6 +20,12 @@ public abstract class BaseActivity extends AppCompatActivity {
         initService();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setHandlers();
+    }
+
     private void initService() {
         mSpotifyService =  new SpotifyApi().getService();
     }
@@ -27,4 +33,9 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected SpotifyService getService() {
         return mSpotifyService;
     }
+
+    /**
+     * Implement to set the click and touch event handlers
+     */
+    protected abstract void setHandlers();
 }

@@ -1,5 +1,8 @@
 package com.iprodev.spotifystreamer;
 
+import static com.iprodev.spotifystreamer.ArtistActivity.ARTIST_NAME;
+import static com.iprodev.spotifystreamer.ArtistActivity.ARTIST_ID;
+
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,6 +16,7 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.iprodev.spotifystreamer.com.iprodev.spotifystreamer.model.ArtistsAdaper;
 
@@ -41,7 +45,6 @@ public class MainActivity extends BaseActivity {
         mResults = new ArrayList<Artist>();
         mResultsList = (ListView) findViewById(R.id.results_artists_list);
         mSpotIcon = (ImageView)findViewById(R.id.spot_icon);
-        setHandlers();
         if(mQueryString != null)
             loadSearchData(mQueryString);
     }
@@ -58,15 +61,17 @@ public class MainActivity extends BaseActivity {
 //        loadSearchData("Foo Fighters"); //TODO: TEST DATA
     }
 
-    private void setHandlers() {
+    @Override
+    protected void setHandlers() {
         mResultsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Artist artist = (Artist) adapterView.getAdapter().getItem(i);
+
                 Log.d(TAG, "artist id: " + artist.id);
                 Intent intent = new Intent(MainActivity.this, ArtistActivity.class);
-                intent.putExtra("artist_name", artist.name);
-                intent.putExtra("artist_id", artist.id);
+                intent.putExtra(ARTIST_NAME, artist.name);
+                intent.putExtra(ARTIST_ID, artist.id);
                 startActivity(intent);
             }
         });
@@ -108,6 +113,7 @@ public class MainActivity extends BaseActivity {
 
         MenuItem searchItem = menu.findItem(R.id.action_search);
         final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        searchView.setQueryHint(getString(R.string.search_hint));
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -146,6 +152,7 @@ public class MainActivity extends BaseActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             case R.id.action_settings:
+                Toast.makeText(this,"No settings yet, implement me!",Toast.LENGTH_SHORT).show();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

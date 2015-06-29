@@ -1,17 +1,23 @@
 package com.iprodev.spotifystreamer;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.iprodev.spotifystreamer.com.iprodev.spotifystreamer.model.TracksAdapter;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeMap;
 
 import kaaes.spotify.webapi.android.models.Track;
@@ -19,6 +25,12 @@ import kaaes.spotify.webapi.android.models.Tracks;
 
 
 public class ArtistActivity extends BaseActivity {
+
+    private static final String TAG = "ArtistActivity";
+
+    //Metadata constants
+    public static final String ARTIST_NAME = "artist_name";
+    public static final String ARTIST_ID = "artist_id";
 
     private ArrayList<Track> mTracks;
     private ListView mTracksListView;
@@ -28,8 +40,8 @@ public class ArtistActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Intent i = getIntent();
-        String artistName = i.getStringExtra("artist_name");
-        String artitsId = i.getStringExtra("artist_id");
+        String artistName = i.getStringExtra(ARTIST_NAME);
+        String artitsId = i.getStringExtra(ARTIST_ID);
         Log.d("ArtistActivity", "onCreate artist_name: " + artistName + ", artist_id: " + artitsId);
 
         setContentView(R.layout.activity_artist);
@@ -38,6 +50,23 @@ public class ArtistActivity extends BaseActivity {
         ActionBar actionBar = getSupportActionBar();
         actionBar.setSubtitle(artistName);
         actionBar.setDisplayHomeAsUpEnabled(true);
+    }
+
+    @Override
+    protected void setHandlers() {
+        mTracksListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(ArtistActivity.this,"I'm a player, Implement Me!", Toast.LENGTH_LONG).show();
+                Track track = mAdapter.getItem(position);
+                String albumName = track.album.name;
+                List<kaaes.spotify.webapi.android.models.Image> images = track.album.images;
+                String trackName = track.name;
+                String prevURL = track.preview_url;
+                Log.d(TAG, "albumname: " + albumName + ", images_count: " + images.size() + ", track_name: " + trackName + ", preview_URL: " + prevURL);
+                //TODO: Launch player with the above meta data.
+            }
+        });
     }
 
     @Override
@@ -51,6 +80,7 @@ public class ArtistActivity extends BaseActivity {
             @Override
             protected Tracks doInBackground(String... artists) {
                 TreeMap<String,Object> params = new TreeMap<String, Object>();
+                //Must be included else api call will fail! This should probably be localized.
                 params.put("country", "US");
                 final Tracks tracks = getService().getArtistTopTrack(artists[0], params);
                 return tracks;
@@ -66,6 +96,18 @@ public class ArtistActivity extends BaseActivity {
                         mAdapter = new TracksAdapter(ArtistActivity.this, mTracks);
                     mTracksListView.setAdapter(mAdapter);
                     mAdapter.notifyDataSetChanged();
+                } else {
+                    new AlertDialog.Builder(ArtistActivity.this)
+                        .setIcon(R.drawable.spotify_icon)
+                        .setTitle(getString(R.string.no_tracks))
+                        .setPositiveButton(R.string.alert_dialog_ok,
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        ArtistActivity.this.onBackPressed();
+                                    }
+                                })
+                        .show();
                 }
             }
         }.execute(artistId);
@@ -80,10 +122,10 @@ public class ArtistActivity extends BaseActivity {
                 onBackPressed();
                 return true;
             case R.id.action_settings:
+                Toast.makeText(this,"No settings yet, implement me!",Toast.LENGTH_SHORT).show();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
-
 }
