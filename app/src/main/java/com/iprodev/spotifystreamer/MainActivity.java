@@ -6,6 +6,8 @@ import static com.iprodev.spotifystreamer.ArtistActivity.ARTIST_ID;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
@@ -20,6 +22,7 @@ import android.widget.Toast;
 
 import com.iprodev.spotifystreamer.com.iprodev.spotifystreamer.model.ArtistsAdaper;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import kaaes.spotify.webapi.android.models.Artist;
@@ -37,21 +40,29 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        if(savedInstanceState != null)
+        if(savedInstanceState != null) {
             mQueryString = savedInstanceState.getString("mQueryString");
+            mResults = (ArrayList<Artist>) savedInstanceState.getSerializable("mResults");
+        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mResults = new ArrayList<Artist>();
         mResultsList = (ListView) findViewById(R.id.results_artists_list);
         mSpotIcon = (ImageView)findViewById(R.id.spot_icon);
-        if(mQueryString != null)
-            loadSearchData(mQueryString);
+//        if(mQueryString != null)
+//            loadSearchData(mQueryString);
+        if(mResults != null) {
+            inflateSearchResults();
+        } else {
+            mResults = new ArrayList<Artist>();
+        }
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putString("mQueryString", mQueryString);
+        if(mResults != null && mResults.size() > 0)
+            outState.putSerializable("mResults",mResults);
         super.onSaveInstanceState(outState);
     }
 
@@ -95,16 +106,20 @@ public class MainActivity extends BaseActivity {
 
             @Override
             protected void onPostExecute(Void aVoid) {
-                if(mResults.size() > 0) {
-                    if(mResultsAdapter == null) {
-                        mResultsAdapter = new ArtistsAdaper(MainActivity.this, mResults);
-                        mResultsList.setAdapter(mResultsAdapter);
-                    }
-                    mResultsAdapter.notifyDataSetChanged();
-                }
-                updateUI(false);
+                inflateSearchResults();
             }
         }.execute();
+    }
+
+    private void inflateSearchResults() {
+        if(mResults.size() > 0) {
+            if(mResultsAdapter == null) {
+                mResultsAdapter = new ArtistsAdaper(MainActivity.this, mResults);
+                mResultsList.setAdapter(mResultsAdapter);
+            }
+            mResultsAdapter.notifyDataSetChanged();
+        }
+        updateUI(false);
     }
 
     @Override
@@ -114,6 +129,7 @@ public class MainActivity extends BaseActivity {
         MenuItem searchItem = menu.findItem(R.id.action_search);
         final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
         searchView.setQueryHint(getString(R.string.search_hint));
+//        if(mQueryString != null) searchView.setQuery(mQueryString, false);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -168,6 +184,20 @@ public class MainActivity extends BaseActivity {
         } else {
             mSpotIcon.setVisibility(View.VISIBLE);
             noResults.setVisibility(View.GONE);
+        }
+
+        //TODO: Maybe?? 
+        class MyArtist extends Artist implements Parcelable {
+
+            @Override
+            public int describeContents() {
+                return 0;
+            }
+
+            @Override
+            public void writeToParcel(Parcel dest, int flags) {
+
+            }
         }
     }
 }
