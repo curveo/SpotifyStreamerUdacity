@@ -6,7 +6,7 @@
         android:title="@string/result_artist_title"
         android:icon="@android:drawable/ic_menu_search"
         app:showAsAction="ifRoom|collapseActionView"
-        app:actionViewClass="android.support.v7.widget.SearchView" />
+        app:actionViewClass="com.iprodev.spotifystreamer.SearchViewCustom" />
     <item android:id="@+id/action_refresh"
         android:title="@string/action_refresh"
         app:showAsAction="never" />

@@ -1,38 +1,23 @@
 package com.iprodev.spotifystreamer;
 
-import static com.iprodev.spotifystreamer.ArtistActivity.ARTIST_NAME;
-import static com.iprodev.spotifystreamer.ArtistActivity.ARTIST_ID;
-
-import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import com.iprodev.spotifystreamer.frags.SearchFragment;
-import com.iprodev.spotifystreamer.model.ArtistsAdaper;
-
-import java.io.Serializable;
-import java.util.ArrayList;
+import com.iprodev.spotifystreamer.frags.TracksFragment;
 
 import kaaes.spotify.webapi.android.models.Artist;
-import kaaes.spotify.webapi.android.models.ArtistsPager;
 
-public class MainActivity extends BaseActivity {
+public class MainActivity extends BaseActivity implements SearchFragment.SearchCallbacks {
 
     public static final String TAG = "MainActivity";
 
@@ -44,9 +29,9 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         if(savedInstanceState == null) {
-            mSearchFrag = new SearchFragment();
+            mSearchFrag = SearchFragment.getInstance(this);
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.main_container, mSearchFrag)
+                    .add(R.id.main_container, mSearchFrag, "SEARCH")
                     .commit();
         } else {
             mQueryString = savedInstanceState.getString("mQueryString");
@@ -75,21 +60,33 @@ public class MainActivity extends BaseActivity {
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
         final MenuItem searchItem = menu.findItem(R.id.action_search);
-        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        final SearchViewCustom searchView = (SearchViewCustom) MenuItemCompat.getActionView(searchItem);
+        searchView.setCallback(new SearchViewCustom.SearchViewCallback() {
+            @Override
+            public void onCollapsed() {
+                Fragment frag = getSupportFragmentManager().findFragmentByTag("TRACKS");
+                mSearchFrag.updateUI(true);
+                getSupportFragmentManager().beginTransaction()
+                    .remove(frag)
+                    .add(R.id.main_container,mSearchFrag)
+//                    .replace(R.id.main_container, mSearchFrag)
+                    .commit();
+            }
+        });
         searchView.setQueryHint(getString(R.string.search_hint));
 //        if(mQueryString != null) searchView.setQuery(mQueryString, false);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                Log.d(TAG,"onQueryTextSubmit clicked with: " + query);
+                Log.d(TAG, "onQueryTextSubmit clicked with: " + query);
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String searchText) {
-                if(searchText.length() >= 3) {
+                if (searchText.length() >= 3) {
                     mQueryString = searchText;
-                    mSearchFrag.loadSearchData(getService(),searchText);
+                    mSearchFrag.loadSearchData(getService(), searchText);
                     return true;
                 }
                 return false;
@@ -122,5 +119,15 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    @Override
+    public void onArtistSelected(Artist artist) {
+        //TODO: Load the top tracks fragment.
+        TracksFragment tracksFrag = TracksFragment.getInstance(getService(),artist.name,artist.id);
+        getSupportFragmentManager().beginTransaction()
+                .remove(mSearchFrag)
+                .add(R.id.main_container, tracksFrag, "TRACKS")
+//                .replace(R.id.main_container, tracksFrag)
+                .commit();
+    }
 
 }
