@@ -14,7 +14,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.iprodev.spotifystreamer.com.iprodev.spotifystreamer.model.TracksAdapter;
+import com.iprodev.spotifystreamer.model.TracksAdapter;
 
 import java.util.ArrayList;
 import java.util.List;

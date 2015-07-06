@@ -1,4 +1,4 @@
-package com.iprodev.spotifystreamer.com.iprodev.spotifystreamer.model;
+package com.iprodev.spotifystreamer.model;
 
 import android.content.Context;
 import android.view.LayoutInflater;
