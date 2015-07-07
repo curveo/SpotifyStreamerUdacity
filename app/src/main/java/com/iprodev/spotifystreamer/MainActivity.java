@@ -1,5 +1,6 @@
 package com.iprodev.spotifystreamer;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
@@ -14,6 +15,8 @@ import android.widget.Toast;
 
 import com.iprodev.spotifystreamer.frags.SearchFragment;
 import com.iprodev.spotifystreamer.frags.TracksFragment;
+import static com.iprodev.spotifystreamer.frags.TracksFragment.ARTIST_NAME;
+import static com.iprodev.spotifystreamer.frags.TracksFragment.ARTIST_ID;
 
 import kaaes.spotify.webapi.android.models.Artist;
 
@@ -64,13 +67,14 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
         searchView.setCallback(new SearchViewCustom.SearchViewCallback() {
             @Override
             public void onCollapsed() {
-                Fragment frag = getSupportFragmentManager().findFragmentByTag("TRACKS");
-                mSearchFrag.updateUI(true);
-                getSupportFragmentManager().beginTransaction()
-                    .remove(frag)
-                    .add(R.id.main_container,mSearchFrag)
-//                    .replace(R.id.main_container, mSearchFrag)
-                    .commit();
+                //TODO: Way to handle when the search Menu is collapsed in two pane mode
+//                Fragment frag = getSupportFragmentManager().findFragmentByTag("TRACKS");
+//                mSearchFrag.updateUI(true);
+//                getSupportFragmentManager().beginTransaction()
+//                    .remove(frag)
+//                    .add(R.id.main_container,mSearchFrag)
+////                    .replace(R.id.main_container, mSearchFrag)
+//                    .commit();
             }
         });
         searchView.setQueryHint(getString(R.string.search_hint));
@@ -121,13 +125,20 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
 
     @Override
     public void onArtistSelected(Artist artist) {
-        //TODO: Load the top tracks fragment.
-        TracksFragment tracksFrag = TracksFragment.getInstance(getService(),artist.name,artist.id);
-        getSupportFragmentManager().beginTransaction()
-                .remove(mSearchFrag)
-                .add(R.id.main_container, tracksFrag, "TRACKS")
-//                .replace(R.id.main_container, tracksFrag)
-                .commit();
+        Log.d(TAG, "artist id: " + artist.id);
+        Intent intent = new Intent(MainActivity.this, ArtistActivity.class);
+        intent.putExtra(ARTIST_NAME, artist.name);
+        intent.putExtra(ARTIST_ID, artist.id);
+        startActivity(intent);
+
+
+        //TODO: Load the top tracks fragment in two pane mode.
+//        TracksFragment tracksFrag = TracksFragment.getInstance(getService(),artist.name,artist.id);
+//        getSupportFragmentManager().beginTransaction()
+//                .remove(mSearchFrag)
+//                .add(R.id.main_container, tracksFrag, "TRACKS")
+////                .replace(R.id.main_container, tracksFrag)
+//                .commit();
     }
 
 }

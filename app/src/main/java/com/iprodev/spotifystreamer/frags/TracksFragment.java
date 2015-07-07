@@ -39,10 +39,22 @@ public class TracksFragment extends Fragment {
     public static final String ARTIST_NAME = "artist_name";
     public static final String ARTIST_ID = "artist_id";
 
+    private ArtistTracks mArtist;
     private ArrayList<Track> mTracks;
     private ListView mTracksListView;
     private TracksAdapter mAdapter;
     private SpotifyService mService;
+
+    public static class ArtistTracks {
+        public final String name;
+        public final String id;
+
+        public ArtistTracks(String name, String id) {
+            this.name = name;
+            this.id = id;
+        }
+
+    }
 
     public static TracksFragment getInstance(SpotifyService service, String aName, String aID){
         if(sInstance == null) {
@@ -67,8 +79,13 @@ public class TracksFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        loadTracks(getArguments().getString(ARTIST_ID));
 
+    }
+
+    public void loadFragData(SpotifyService service, String aName, String aID) {
+        mArtist = new ArtistTracks(aName, aID);
+        mService = service;
+        loadTracks(mArtist.id);
     }
 
     @Nullable
@@ -110,7 +127,7 @@ public class TracksFragment extends Fragment {
 
             @Override
             protected void onPostExecute(Tracks tracks) {
-                if(tracks != null) {
+                if(null != tracks && tracks.tracks.size() > 0) {
                     if(mTracks == null)
                         mTracks = new ArrayList<Track>();
                     mTracks.addAll(tracks.tracks);
