@@ -143,7 +143,7 @@ public class TracksFragment extends Fragment {
                                     new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
-//                                            ArtistActivity.this.onBackPressed();
+                                            //Nothing to do but dismiss dialog
                                         }
                                     })
                             .show();

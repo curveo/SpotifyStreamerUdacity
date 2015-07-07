@@ -2,7 +2,6 @@ package com.iprodev.spotifystreamer;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
@@ -14,11 +13,11 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.iprodev.spotifystreamer.frags.SearchFragment;
-import com.iprodev.spotifystreamer.frags.TracksFragment;
-import static com.iprodev.spotifystreamer.frags.TracksFragment.ARTIST_NAME;
-import static com.iprodev.spotifystreamer.frags.TracksFragment.ARTIST_ID;
 
 import kaaes.spotify.webapi.android.models.Artist;
+
+import static com.iprodev.spotifystreamer.frags.TracksFragment.ARTIST_ID;
+import static com.iprodev.spotifystreamer.frags.TracksFragment.ARTIST_NAME;
 
 public class MainActivity extends BaseActivity implements SearchFragment.SearchCallbacks {
 
@@ -30,15 +29,12 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        if(savedInstanceState == null) {
-            mSearchFrag = SearchFragment.getInstance(this);
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.main_container, mSearchFrag, "SEARCH")
-                    .commit();
-        } else {
+       if(savedInstanceState != null)
             mQueryString = savedInstanceState.getString("mQueryString");
-        }
+
+        setContentView(R.layout.activity_main);
+        mSearchFrag = (SearchFragment) getSupportFragmentManager().findFragmentById(R.id.main_container);
+        mSearchFrag.setCallbacks(this);
     }
 
     @Override
@@ -50,12 +46,15 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
     @Override
     protected void onResume() {
         super.onResume();
+        //TODO: Consider optimizing network calls here.
+        if(mQueryString != null)
+            mSearchFrag.loadSearchData(getService(), mQueryString);
 //        loadSearchData("Foo Fighters"); //TODO: TEST DATA
     }
 
     @Override
     protected void setHandlers() {
-
+        //TODO: perhaps not needed now with fragments.
     }
 
     @Override
