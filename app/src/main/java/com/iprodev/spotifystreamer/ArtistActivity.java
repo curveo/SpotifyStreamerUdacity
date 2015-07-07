@@ -26,6 +26,7 @@ import kaaes.spotify.webapi.android.models.Tracks;
 
 public class ArtistActivity extends BaseActivity {
 
+    //Need this back.
     private static final String TAG = "ArtistActivity";
 
     //Metadata constants
