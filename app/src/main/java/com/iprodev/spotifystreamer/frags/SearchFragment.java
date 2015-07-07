@@ -1,7 +1,5 @@
 package com.iprodev.spotifystreamer.frags;
 
-import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcel;
@@ -16,7 +14,6 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 
-import com.iprodev.spotifystreamer.ArtistActivity;
 import com.iprodev.spotifystreamer.R;
 import com.iprodev.spotifystreamer.model.ArtistsAdaper;
 
@@ -25,9 +22,6 @@ import java.util.ArrayList;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
-
-import static com.iprodev.spotifystreamer.ArtistActivity.ARTIST_ID;
-import static com.iprodev.spotifystreamer.ArtistActivity.ARTIST_NAME;
 
 /**
  * Created by curtisashby on 7/6/15.
@@ -40,12 +34,17 @@ public class SearchFragment extends Fragment {
     private ArrayList<Artist> mResults;
     private ListView mResultsList;
     private ImageView mSpotIcon;
+    private SearchCallbacks mCallbacks;
 
+    public interface SearchCallbacks {
+        public void onArtistSelected(Artist artist);
+    }
 
-    public static SearchFragment getInstance() {
-        if(sInstance == null)
+    public static SearchFragment getInstance(SearchCallbacks callbacks) {
+        if (sInstance == null)
             sInstance = new SearchFragment();
 
+        sInstance.setCallbacks(callbacks);
         return sInstance;
     }
 
@@ -61,22 +60,20 @@ public class SearchFragment extends Fragment {
         mSpotIcon = (ImageView) root.findViewById(R.id.spot_icon);
 //        if(mQueryString != null)
 //            loadSearchData(mQueryString);
-        if(mResults != null) {
-            inflateSearchResults();
-        } else {
+        if(mResults == null)
             mResults = new ArrayList<Artist>();
-        }
 
         mResultsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Artist artist = (Artist) adapterView.getAdapter().getItem(i);
-
                 Log.d(TAG, "artist id: " + artist.id);
-                Intent intent = new Intent(getActivity(), ArtistActivity.class);
-                intent.putExtra(ARTIST_NAME, artist.name);
-                intent.putExtra(ARTIST_ID, artist.id);
-                startActivity(intent);
+                mCallbacks.onArtistSelected(artist);
+//
+//                Intent intent = new Intent(getActivity(), ArtistActivity.class);
+//                intent.putExtra(ARTIST_NAME, artist.name);
+//                intent.putExtra(ARTIST_ID, artist.id);
+//                startActivity(intent);
             }
         });
 
@@ -88,6 +85,17 @@ public class SearchFragment extends Fragment {
 //        if(mResults != null && mResults.size() > 0)
 //            outState.putSerializable("mResults",mResults);
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if(mResults != null && mResults.size() > 0)
+            inflateSearchResults();
+    }
+
+    private void setCallbacks(SearchCallbacks mCallbacks) {
+        this.mCallbacks = mCallbacks;
     }
 
     public void loadSearchData(final SpotifyService service, final String search) {
