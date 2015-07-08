@@ -66,7 +66,7 @@ public class TracksFragment extends Fragment {
         bnd.putString(ARTIST_ID, aID);
 
         sInstance.mService = service;
-        sInstance.setArguments(bnd);
+//        sInstance.setArguments(bnd);
 
         return sInstance;
     }
@@ -94,13 +94,17 @@ public class TracksFragment extends Fragment {
         View root = inflater.inflate(R.layout.frag_tracks, container, false);
 
         mTracksListView = (ListView) root.findViewById(R.id.results_artists_tracks_list);
-//        loadTracks(getArguments().getString(ARTIST_ID));
+        mTracks = new ArrayList<Track>();
+        mAdapter = new TracksAdapter(getActivity(), mTracks);
+        mTracksListView.setAdapter(mAdapter);
 
         mTracksListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Toast.makeText(getActivity(), "I'm a player, Implement Me!", Toast.LENGTH_LONG).show();
                 Track track = mAdapter.getItem(position);
+                String audioUrl = track.preview_url;
+
                 String albumName = track.album.name;
                 List<Image> images = track.album.images;
                 String trackName = track.name;
@@ -127,14 +131,14 @@ public class TracksFragment extends Fragment {
 
             @Override
             protected void onPostExecute(Tracks tracks) {
+                mTracks.clear();
                 if(null != tracks && tracks.tracks.size() > 0) {
-                    if(mTracks == null)
-                        mTracks = new ArrayList<Track>();
+//                    if(mTracks == null)
+//                    mTracks = new ArrayList<Track>();
                     mTracks.addAll(tracks.tracks);
-                    if(mAdapter == null)
-                        mAdapter = new TracksAdapter(getActivity(), mTracks);
-                    mTracksListView.setAdapter(mAdapter);
-                    mAdapter.notifyDataSetChanged();
+//                    if(mAdapter == null)
+//                        mAdapter = new TracksAdapter(getActivity(), mTracks);
+
                 } else {
                     new AlertDialog.Builder(getActivity())
                             .setIcon(R.drawable.spotify_icon)
@@ -148,6 +152,7 @@ public class TracksFragment extends Fragment {
                                     })
                             .show();
                 }
+                mAdapter.notifyDataSetChanged();
             }
         }.execute(artistId);
     }

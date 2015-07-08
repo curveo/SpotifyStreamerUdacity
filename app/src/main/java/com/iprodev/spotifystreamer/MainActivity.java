@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.iprodev.spotifystreamer.frags.SearchFragment;
+import com.iprodev.spotifystreamer.frags.TracksFragment;
 
 import kaaes.spotify.webapi.android.models.Artist;
 
@@ -22,9 +23,11 @@ import static com.iprodev.spotifystreamer.frags.TracksFragment.ARTIST_NAME;
 public class MainActivity extends BaseActivity implements SearchFragment.SearchCallbacks {
 
     public static final String TAG = "MainActivity";
+    public static final String TRACKS_FRAG = "TracksFragment";
 
     private SearchFragment mSearchFrag;
     private String mQueryString;
+    private boolean isTablet;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +38,15 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
         setContentView(R.layout.activity_main);
         mSearchFrag = (SearchFragment) getSupportFragmentManager().findFragmentById(R.id.main_container);
         mSearchFrag.setCallbacks(this);
+
+        if(findViewById(R.id.toptracks_container) != null) {
+            isTablet = true;
+            if(savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .add(R.id.toptracks_container, TracksFragment.getInstance(getService(),null,null), TRACKS_FRAG)
+                        .commit();
+            }
+        }
     }
 
     @Override
@@ -125,10 +137,20 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
     @Override
     public void onArtistSelected(Artist artist) {
         Log.d(TAG, "artist id: " + artist.id);
-        Intent intent = new Intent(MainActivity.this, ArtistActivity.class);
-        intent.putExtra(ARTIST_NAME, artist.name);
-        intent.putExtra(ARTIST_ID, artist.id);
-        startActivity(intent);
+        if(!isTablet) {
+            Intent intent = new Intent(MainActivity.this, ArtistActivity.class);
+            intent.putExtra(ARTIST_NAME, artist.name);
+            intent.putExtra(ARTIST_ID, artist.id);
+            startActivity(intent);
+        } else {
+            TracksFragment track = TracksFragment.getInstance(getService(), artist.name, artist.id);
+            track.loadFragData(getService(), artist.name, artist.id);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.toptracks_container, track, TRACKS_FRAG)
+                    .commit();
+//            TracksFragment track = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACKS_FRAG);
+//            track.loadFragData(getService(), artist.name, artist.id);
+        }
 
 
         //TODO: Load the top tracks fragment in two pane mode.
