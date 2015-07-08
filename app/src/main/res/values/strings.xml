@@ -1,11 +1,12 @@
 <resources>
     <string name="app_name">SpotifyStreamer</string>
+    <string name="title_activity_artist">Top 10 tracks</string>
     <string name="action_settings">Settings</string>
     <string name="search_hint">Search by artist name</string>
-    <string name="result_artist_title">Juju and the juicers</string>
+    <string name="result_artist_title">Search Artist</string>
     <string name="noresults">No results found</string>
-    <string name="title_activity_artist">Top 10 tracks</string>
     <string name="no_tracks">No top tracks for this artist</string>
     <string name="alert_dialog_ok">Ok</string>
+    <string name="spot_icon_help">spotify icon</string>
     <string name="action_refresh">refresh</string>
 </resources>

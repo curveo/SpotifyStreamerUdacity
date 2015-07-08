@@ -1,7 +1,7 @@
 package com.iprodev.spotifystreamer;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
@@ -17,24 +17,35 @@ import com.iprodev.spotifystreamer.frags.TracksFragment;
 
 import kaaes.spotify.webapi.android.models.Artist;
 
+import static com.iprodev.spotifystreamer.frags.TracksFragment.ARTIST_ID;
+import static com.iprodev.spotifystreamer.frags.TracksFragment.ARTIST_NAME;
+
 public class MainActivity extends BaseActivity implements SearchFragment.SearchCallbacks {
 
     public static final String TAG = "MainActivity";
+    public static final String TRACKS_FRAG = "TracksFragment";
 
     private SearchFragment mSearchFrag;
     private String mQueryString;
+    private boolean isTablet;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        if(savedInstanceState == null) {
-            mSearchFrag = SearchFragment.getInstance(this);
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.main_container, mSearchFrag, "SEARCH")
-                    .commit();
-        } else {
+       if(savedInstanceState != null)
             mQueryString = savedInstanceState.getString("mQueryString");
+
+        setContentView(R.layout.activity_main);
+        mSearchFrag = (SearchFragment) getSupportFragmentManager().findFragmentById(R.id.main_container);
+        mSearchFrag.setCallbacks(this);
+
+        if(findViewById(R.id.toptracks_container) != null) {
+            isTablet = true;
+            if(savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .add(R.id.toptracks_container, TracksFragment.getInstance(getService(),null,null), TRACKS_FRAG)
+                        .commit();
+            }
         }
     }
 
@@ -47,12 +58,15 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
     @Override
     protected void onResume() {
         super.onResume();
+        //TODO: Consider optimizing network calls here.
+        if(mQueryString != null)
+            mSearchFrag.loadSearchData(getService(), mQueryString);
 //        loadSearchData("Foo Fighters"); //TODO: TEST DATA
     }
 
     @Override
     protected void setHandlers() {
-
+        //TODO: perhaps not needed now with fragments.
     }
 
     @Override
@@ -64,13 +78,14 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
         searchView.setCallback(new SearchViewCustom.SearchViewCallback() {
             @Override
             public void onCollapsed() {
-                Fragment frag = getSupportFragmentManager().findFragmentByTag("TRACKS");
-                mSearchFrag.updateUI(true);
-                getSupportFragmentManager().beginTransaction()
-                    .remove(frag)
-                    .add(R.id.main_container,mSearchFrag)
-//                    .replace(R.id.main_container, mSearchFrag)
-                    .commit();
+                //TODO: Way to handle when the search Menu is collapsed in two pane mode
+//                Fragment frag = getSupportFragmentManager().findFragmentByTag("TRACKS");
+//                mSearchFrag.updateUI(true);
+//                getSupportFragmentManager().beginTransaction()
+//                    .remove(frag)
+//                    .add(R.id.main_container,mSearchFrag)
+////                    .replace(R.id.main_container, mSearchFrag)
+//                    .commit();
             }
         });
         searchView.setQueryHint(getString(R.string.search_hint));
@@ -121,13 +136,30 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
 
     @Override
     public void onArtistSelected(Artist artist) {
-        //TODO: Load the top tracks fragment.
-        TracksFragment tracksFrag = TracksFragment.getInstance(getService(),artist.name,artist.id);
-        getSupportFragmentManager().beginTransaction()
-                .remove(mSearchFrag)
-                .add(R.id.main_container, tracksFrag, "TRACKS")
-//                .replace(R.id.main_container, tracksFrag)
-                .commit();
+        Log.d(TAG, "artist id: " + artist.id);
+        if(!isTablet) {
+            Intent intent = new Intent(MainActivity.this, ArtistActivity.class);
+            intent.putExtra(ARTIST_NAME, artist.name);
+            intent.putExtra(ARTIST_ID, artist.id);
+            startActivity(intent);
+        } else {
+            TracksFragment track = TracksFragment.getInstance(getService(), artist.name, artist.id);
+            track.loadFragData(getService(), artist.name, artist.id);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.toptracks_container, track, TRACKS_FRAG)
+                    .commit();
+//            TracksFragment track = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACKS_FRAG);
+//            track.loadFragData(getService(), artist.name, artist.id);
+        }
+
+
+        //TODO: Load the top tracks fragment in two pane mode.
+//        TracksFragment tracksFrag = TracksFragment.getInstance(getService(),artist.name,artist.id);
+//        getSupportFragmentManager().beginTransaction()
+//                .remove(mSearchFrag)
+//                .add(R.id.main_container, tracksFrag, "TRACKS")
+////                .replace(R.id.main_container, tracksFrag)
+//                .commit();
     }
 
 }

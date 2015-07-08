@@ -94,7 +94,7 @@ public class SearchFragment extends Fragment {
             inflateSearchResults();
     }
 
-    private void setCallbacks(SearchCallbacks mCallbacks) {
+    public void setCallbacks(SearchCallbacks mCallbacks) {
         this.mCallbacks = mCallbacks;
     }
 
@@ -142,20 +142,6 @@ public class SearchFragment extends Fragment {
             mSpotIcon.setVisibility(View.VISIBLE);
             noResults.setVisibility(View.GONE);
             mResults.clear();
-        }
-
-        //TODO: Maybe??
-        class MyArtist extends Artist implements Parcelable {
-
-            @Override
-            public int describeContents() {
-                return 0;
-            }
-
-            @Override
-            public void writeToParcel(Parcel dest, int flags) {
-
-            }
         }
     }
 }

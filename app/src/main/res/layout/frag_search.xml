@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.iprodev.spotifystreamer.MainActivity">
+    tools:context="com.iprodev.spotifystreamer.frags.SearchFragment">
 
     <ListView
         android:id="@+id/results_artists_list"
@@ -29,6 +29,8 @@
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_centerInParent="true"
-        android:src="@drawable/spotify_icon"/>
+        android:contentDescription="@string/spot_icon_help"
+        android:gravity="center"
+        android:src="@drawable/spotify_icon" />
 
 </RelativeLayout>

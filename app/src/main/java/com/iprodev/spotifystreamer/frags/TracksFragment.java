@@ -39,10 +39,22 @@ public class TracksFragment extends Fragment {
     public static final String ARTIST_NAME = "artist_name";
     public static final String ARTIST_ID = "artist_id";
 
+    private ArtistTracks mArtist;
     private ArrayList<Track> mTracks;
     private ListView mTracksListView;
     private TracksAdapter mAdapter;
     private SpotifyService mService;
+
+    public static class ArtistTracks {
+        public final String name;
+        public final String id;
+
+        public ArtistTracks(String name, String id) {
+            this.name = name;
+            this.id = id;
+        }
+
+    }
 
     public static TracksFragment getInstance(SpotifyService service, String aName, String aID){
         if(sInstance == null) {
@@ -54,7 +66,7 @@ public class TracksFragment extends Fragment {
         bnd.putString(ARTIST_ID, aID);
 
         sInstance.mService = service;
-        sInstance.setArguments(bnd);
+//        sInstance.setArguments(bnd);
 
         return sInstance;
     }
@@ -67,8 +79,13 @@ public class TracksFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        loadTracks(getArguments().getString(ARTIST_ID));
 
+    }
+
+    public void loadFragData(SpotifyService service, String aName, String aID) {
+        mArtist = new ArtistTracks(aName, aID);
+        mService = service;
+        loadTracks(mArtist.id);
     }
 
     @Nullable
@@ -77,13 +94,17 @@ public class TracksFragment extends Fragment {
         View root = inflater.inflate(R.layout.frag_tracks, container, false);
 
         mTracksListView = (ListView) root.findViewById(R.id.results_artists_tracks_list);
-//        loadTracks(getArguments().getString(ARTIST_ID));
+        mTracks = new ArrayList<Track>();
+        mAdapter = new TracksAdapter(getActivity(), mTracks);
+        mTracksListView.setAdapter(mAdapter);
 
         mTracksListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Toast.makeText(getActivity(), "I'm a player, Implement Me!", Toast.LENGTH_LONG).show();
                 Track track = mAdapter.getItem(position);
+                String audioUrl = track.preview_url;
+
                 String albumName = track.album.name;
                 List<Image> images = track.album.images;
                 String trackName = track.name;
@@ -110,14 +131,14 @@ public class TracksFragment extends Fragment {
 
             @Override
             protected void onPostExecute(Tracks tracks) {
-                if(tracks != null) {
-                    if(mTracks == null)
-                        mTracks = new ArrayList<Track>();
+                mTracks.clear();
+                if(null != tracks && tracks.tracks.size() > 0) {
+//                    if(mTracks == null)
+//                    mTracks = new ArrayList<Track>();
                     mTracks.addAll(tracks.tracks);
-                    if(mAdapter == null)
-                        mAdapter = new TracksAdapter(getActivity(), mTracks);
-                    mTracksListView.setAdapter(mAdapter);
-                    mAdapter.notifyDataSetChanged();
+//                    if(mAdapter == null)
+//                        mAdapter = new TracksAdapter(getActivity(), mTracks);
+
                 } else {
                     new AlertDialog.Builder(getActivity())
                             .setIcon(R.drawable.spotify_icon)
@@ -126,11 +147,12 @@ public class TracksFragment extends Fragment {
                                     new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
-//                                            ArtistActivity.this.onBackPressed();
+                                            //Nothing to do but dismiss dialog
                                         }
                                     })
                             .show();
                 }
+                mAdapter.notifyDataSetChanged();
             }
         }.execute(artistId);
     }
