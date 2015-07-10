@@ -118,7 +118,7 @@ public class TracksFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState
+//        outState
         super.onSaveInstanceState(outState);
     }
 

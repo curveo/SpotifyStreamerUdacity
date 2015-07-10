@@ -6,6 +6,7 @@
     <string name="result_artist_title">Search Artist</string>
     <string name="noresults">No results found</string>
     <string name="no_tracks">No top tracks for this artist</string>
+    <string name="no_more_tracks">No more tracks</string>
     <string name="alert_dialog_ok">Ok</string>
     <string name="spot_icon_help">spotify icon</string>
     <string name="action_refresh">refresh</string>

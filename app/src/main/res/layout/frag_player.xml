@@ -30,8 +30,8 @@
         android:layout_width="325dp"
         android:layout_height="350dp"
         android:layout_below="@id/artist_meta_title"
-        android:layout_centerHorizontal="true"
-        android:src="@drawable/player_album_stub" />
+        android:layout_centerHorizontal="true" />
+        <!--android:src="@drawable/player_album_stub" />-->
 
     <TextView
         android:id="@+id/text_song_name"
