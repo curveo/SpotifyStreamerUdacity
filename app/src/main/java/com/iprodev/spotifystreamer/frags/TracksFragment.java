@@ -15,6 +15,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.iprodev.spotifystreamer.PlayerActivity;
 import com.iprodev.spotifystreamer.R;
 import com.iprodev.spotifystreamer.model.TracksAdapter;
 
@@ -44,6 +45,12 @@ public class TracksFragment extends Fragment {
     private ListView mTracksListView;
     private TracksAdapter mAdapter;
     private SpotifyService mService;
+    private TracksFragCallback mCallback;
+
+    public interface TracksFragCallback {
+        public void onTrackSelected(Track track);
+        public void onNoTracksAvailable();
+    }
 
     public static class ArtistTracks {
         public final String name;
@@ -56,17 +63,13 @@ public class TracksFragment extends Fragment {
 
     }
 
-    public static TracksFragment getInstance(SpotifyService service, String aName, String aID){
+    public static TracksFragment getInstance(SpotifyService service, TracksFragCallback callback) {
         if(sInstance == null) {
             sInstance = new TracksFragment();
         }
 
-        Bundle bnd = new Bundle();
-        bnd.putString(ARTIST_NAME, aName);
-        bnd.putString(ARTIST_ID, aID);
-
         sInstance.mService = service;
-//        sInstance.setArguments(bnd);
+        sInstance.mCallback = callback;
 
         return sInstance;
     }
@@ -80,6 +83,10 @@ public class TracksFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+    }
+
+    public void setCallback(TracksFragCallback callback) {
+        mCallback = callback;
     }
 
     public void loadFragData(SpotifyService service, String aName, String aID) {
@@ -101,20 +108,18 @@ public class TracksFragment extends Fragment {
         mTracksListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(getActivity(), "I'm a player, Implement Me!", Toast.LENGTH_LONG).show();
                 Track track = mAdapter.getItem(position);
-                String audioUrl = track.preview_url;
-
-                String albumName = track.album.name;
-                List<Image> images = track.album.images;
-                String trackName = track.name;
-                String prevURL = track.preview_url;
-                Log.d(TAG, "albumname: " + albumName + ", images_count: " + images.size() + ", track_name: " + trackName + ", preview_URL: " + prevURL);
-                //TODO: Launch player with the above meta data.
+                mCallback.onTrackSelected(track);
             }
         });
 
         return root;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState
+        super.onSaveInstanceState(outState);
     }
 
     public void loadTracks(final String artistId) {
@@ -148,6 +153,7 @@ public class TracksFragment extends Fragment {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
                                             //Nothing to do but dismiss dialog
+                                            mCallback.onNoTracksAvailable();
                                         }
                                     })
                             .show();
@@ -155,6 +161,11 @@ public class TracksFragment extends Fragment {
                 mAdapter.notifyDataSetChanged();
             }
         }.execute(artistId);
+    }
+
+    public void restTracks() {
+        mTracks.clear();
+        mAdapter.notifyDataSetChanged();
     }
 
 }

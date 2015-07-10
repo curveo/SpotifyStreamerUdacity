@@ -69,33 +69,8 @@ public class TracksAdapter extends BaseAdapter {
                     thumb = thumbUrl;
                 }
             }
-//                new AsyncTask<String, Void, Void>() {
-//
-//                    @Override
-//                    protected Void doInBackground(String... strings) {
-//                        String url = strings[0];
-//                        try {
-//                            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-//                            InputStream in = new BufferedInputStream(conn.getInputStream());
-//                            byte[] buffer = new byte[1024];
-//                            while(in.read() != -1) {
-//
-//                            }
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
-//
-//
-//                        return null;
-//                    }
-//
-//                    @Override
-//                    protected void onPostExecute(Void aVoid) {
-//                        super.onPostExecute(aVoid);
-//                    }
-//                }.execute(result.images.get(0).url);
-
-            Picasso.with(mContext).load(thumb.url).into(holder.mImageV);
+            if(thumb != null)
+                Picasso.with(mContext).load(thumb.url).into(holder.mImageV);
         } else {
             holder.mImageV.setImageResource(R.drawable.artist_placeholder);
         }

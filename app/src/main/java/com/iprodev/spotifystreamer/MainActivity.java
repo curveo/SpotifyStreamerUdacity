@@ -15,12 +15,16 @@ import android.widget.Toast;
 import com.iprodev.spotifystreamer.frags.SearchFragment;
 import com.iprodev.spotifystreamer.frags.TracksFragment;
 
+import java.util.List;
+
 import kaaes.spotify.webapi.android.models.Artist;
+import kaaes.spotify.webapi.android.models.Image;
+import kaaes.spotify.webapi.android.models.Track;
 
 import static com.iprodev.spotifystreamer.frags.TracksFragment.ARTIST_ID;
 import static com.iprodev.spotifystreamer.frags.TracksFragment.ARTIST_NAME;
 
-public class MainActivity extends BaseActivity implements SearchFragment.SearchCallbacks {
+public class MainActivity extends BaseActivity implements SearchFragment.SearchCallbacks, TracksFragment.TracksFragCallback {
 
     public static final String TAG = "MainActivity";
     public static final String TRACKS_FRAG = "TracksFragment";
@@ -43,7 +47,7 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
             isTablet = true;
             if(savedInstanceState == null) {
                 getSupportFragmentManager().beginTransaction()
-                        .add(R.id.toptracks_container, TracksFragment.getInstance(getService(),null,null), TRACKS_FRAG)
+                        .add(R.id.toptracks_container, TracksFragment.getInstance(getService(),this), TRACKS_FRAG)
                         .commit();
             }
         }
@@ -117,6 +121,10 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
                 text.setText("");
                 searchView.setQuery("", false);
                 mSearchFrag.updateUI(true);
+                if(isTablet) {
+                    TracksFragment track = TracksFragment.getInstance(getService(),MainActivity.this);
+                    track.restTracks();
+                }
             }
         });
 
@@ -143,7 +151,7 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
             intent.putExtra(ARTIST_ID, artist.id);
             startActivity(intent);
         } else {
-            TracksFragment track = TracksFragment.getInstance(getService(), artist.name, artist.id);
+            TracksFragment track = TracksFragment.getInstance(getService(),this);
             track.loadFragData(getService(), artist.name, artist.id);
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.toptracks_container, track, TRACKS_FRAG)
@@ -162,4 +170,19 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
 //                .commit();
     }
 
+    @Override
+    public void onTrackSelected(Track track) {
+        String audioUrl = track.preview_url;
+        String albumName = track.album.name;
+        List<Image> images = track.album.images;
+        String trackName = track.name;
+        String prevURL = track.preview_url;
+        Log.d(TAG, "albumname: " + albumName + ", images_count: " + images.size() + ", track_name: " + trackName + ", preview_URL: " + prevURL);
+        //TODO: Launch player with the above meta data.
+    }
+
+    @Override
+    public void onNoTracksAvailable() {
+        //TODO: maybe put focus on the listview in two pane mode?
+    }
 }

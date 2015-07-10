@@ -62,12 +62,12 @@ public class ArtistsAdaper extends BaseAdapter {
         if(result.images.size() > 0 ) {
             Image thumb = null;
             for(Image thumbUrl: result.images) {
-                //TODO conditionally grab the correct url based on size.
+                //conditionally grab the correct url based on size.
                 if(thumbUrl.height >= 100 && thumbUrl.height <= 300) {
                     thumb = thumbUrl;
                 }
             }
-            if(null != thumb)
+            if(thumb != null)
                 Picasso.with(mContext).load(thumb.url).into(holder.mImageV);
         }
         holder.mArtist.setTag(result);

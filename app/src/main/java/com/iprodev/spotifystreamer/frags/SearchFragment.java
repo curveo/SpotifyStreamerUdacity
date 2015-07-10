@@ -35,6 +35,7 @@ public class SearchFragment extends Fragment {
     private ListView mResultsList;
     private ImageView mSpotIcon;
     private SearchCallbacks mCallbacks;
+    private int mPosition;
 
     public interface SearchCallbacks {
         public void onArtistSelected(Artist artist);
@@ -53,6 +54,7 @@ public class SearchFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if(savedInstanceState != null) {
             mResults = (ArrayList<Artist>) savedInstanceState.getSerializable("mResults");
+            mPosition = savedInstanceState.getInt("mPosition");
         }
         View root = inflater.inflate(R.layout.frag_search, container, false);
 
@@ -60,8 +62,9 @@ public class SearchFragment extends Fragment {
         mSpotIcon = (ImageView) root.findViewById(R.id.spot_icon);
 //        if(mQueryString != null)
 //            loadSearchData(mQueryString);
-        if(mResults == null)
-            mResults = new ArrayList<Artist>();
+        mResults = new ArrayList<Artist>();
+        mResultsAdapter = new ArtistsAdaper(getActivity(), mResults);
+        mResultsList.setAdapter(mResultsAdapter);
 
         mResultsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -69,6 +72,7 @@ public class SearchFragment extends Fragment {
                 Artist artist = (Artist) adapterView.getAdapter().getItem(i);
                 Log.d(TAG, "artist id: " + artist.id);
                 mCallbacks.onArtistSelected(artist);
+                mPosition = i;
 //
 //                Intent intent = new Intent(getActivity(), ArtistActivity.class);
 //                intent.putExtra(ARTIST_NAME, artist.name);
@@ -84,6 +88,10 @@ public class SearchFragment extends Fragment {
     public void onSaveInstanceState(Bundle outState) {
 //        if(mResults != null && mResults.size() > 0)
 //            outState.putSerializable("mResults",mResults);
+        if(mPosition != ListView.INVALID_POSITION) {
+            outState.putInt("mPosition", mPosition);
+        }
+
         super.onSaveInstanceState(outState);
     }
 
@@ -92,6 +100,7 @@ public class SearchFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         if(mResults != null && mResults.size() > 0)
             inflateSearchResults();
+//        mResultsList.smoothScrollToPosition(mPosition);
     }
 
     public void setCallbacks(SearchCallbacks mCallbacks) {
@@ -105,11 +114,7 @@ public class SearchFragment extends Fragment {
             protected Void doInBackground(Void... params) {
                 ArtistsPager results = service.searchArtists(search);
                 Log.d(TAG, results.toString());
-                if (mResults == null) {
-                    mResults = new ArrayList<Artist>();
-                } else {
-                    mResults.clear();
-                }
+                mResults.clear();
                 mResults.addAll(results.artists.items);
                 return null;
             }
@@ -122,14 +127,12 @@ public class SearchFragment extends Fragment {
     }
 
     private void inflateSearchResults() {
-        if(mResults.size() > 0) {
-            if(mResultsAdapter == null) {
-                mResultsAdapter = new ArtistsAdaper(getActivity(), mResults);
-                mResultsList.setAdapter(mResultsAdapter);
-            }
-            mResultsAdapter.notifyDataSetChanged();
-        }
+        mResultsAdapter.notifyDataSetChanged();
         updateUI(false);
+//        mResultsList.smoothScrollToPosition(mPosition);
+        mResultsList.requestFocus();
+        mResultsList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+        mResultsList.setItemChecked(mPosition,true);
     }
 
     public void updateUI(boolean clearUI) {
