@@ -2,6 +2,7 @@ package com.iprodev.spotifystreamer;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
@@ -12,6 +13,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.iprodev.spotifystreamer.frags.PlayerFragment;
 import com.iprodev.spotifystreamer.frags.SearchFragment;
 import com.iprodev.spotifystreamer.frags.TracksFragment;
 
@@ -32,6 +34,7 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
     private SearchFragment mSearchFrag;
     private String mQueryString;
     private boolean isTablet;
+    private String mArtistName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,6 +148,7 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
     @Override
     public void onArtistSelected(Artist artist) {
         Log.d(TAG, "artist id: " + artist.id);
+        mArtistName = artist.name;
         if(!isTablet) {
             Intent intent = new Intent(MainActivity.this, ArtistActivity.class);
             intent.putExtra(ARTIST_NAME, artist.name);
@@ -173,16 +177,57 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
     @Override
     public void onTrackSelected(Track track) {
         String audioUrl = track.preview_url;
+
         String albumName = track.album.name;
         List<Image> images = track.album.images;
+        String imageUrl = null;
+        for(Image i : images) {
+            if(i.height >= 300 ) {
+                imageUrl = i.url;
+                break;
+            }
+        }
         String trackName = track.name;
         String prevURL = track.preview_url;
-        Log.d(TAG, "albumname: " + albumName + ", images_count: " + images.size() + ", track_name: " + trackName + ", preview_URL: " + prevURL);
-        //TODO: Launch player with the above meta data.
+        Log.d(TAG, "albumname: " + albumName + ", images_count: " + images.size() + ", track_name: "
+                + trackName + ", preview_URL: " + prevURL);
+
+        Bundle bnd = new Bundle();
+        bnd.putString(PlayerFragment.ARTIST_NAME, mArtistName);
+        bnd.putString(PlayerFragment.ALBUM_NAME, albumName);
+        bnd.putString(PlayerFragment.IMAGE_URL, imageUrl);
+        bnd.putString(PlayerFragment.TRACK_NAME, trackName);
+        bnd.putString(PlayerFragment.PREVIEW_URL, prevURL);
+
+        //Initiate the PlayerFragment and add to backstack.
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        PlayerFragment prev = (PlayerFragment)getSupportFragmentManager().findFragmentByTag(PlayerFragment.TAG);
+        if (prev != null) {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+
+        //Get and show player.
+        //TODO: Pull the callbacks up and implement next and previous track.
+        final TracksFragment frag = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACKS_FRAG);
+        PlayerFragment playerFrag = PlayerFragment.getInstance(new PlayerFragment.TransportCallbacks() {
+            @Override
+            public Track getPreviousTrack() {
+                return frag.getPreviousTrack();
+            }
+
+            @Override
+            public Track getNextTrack() {
+                return frag.getNextTrack();
+            }
+        }, bnd, true);
+
+        playerFrag.show(ft, PlayerFragment.TAG);
     }
 
     @Override
     public void onNoTracksAvailable() {
         //TODO: maybe put focus on the listview in two pane mode?
+
     }
 }

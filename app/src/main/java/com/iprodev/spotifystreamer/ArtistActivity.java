@@ -80,19 +80,18 @@ public class ArtistActivity extends BaseActivity implements TracksFragment.Track
 
         //Get and show player.
         //TODO: Pull the callbacks up and implement next and previous track.
+        final TracksFragment frag = (TracksFragment) getSupportFragmentManager().findFragmentById(R.id.toptracks_fragment);
         PlayerFragment playerFrag = PlayerFragment.getInstance(new PlayerFragment.TransportCallbacks() {
             @Override
             public Track getPreviousTrack() {
-                //TODO:
-                return null;
+                return frag.getPreviousTrack();
             }
 
             @Override
             public Track getNextTrack() {
-                //TODO:
-                return null;
+                return frag.getNextTrack();
             }
-        }, bnd);
+        }, bnd, false);
         playerFrag.show(ft, PlayerFragment.TAG);
     }
 

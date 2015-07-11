@@ -46,6 +46,7 @@ public class TracksFragment extends Fragment {
     private TracksAdapter mAdapter;
     private SpotifyService mService;
     private TracksFragCallback mCallback;
+    private int mSelectedPosition;
 
     public interface TracksFragCallback {
         public void onTrackSelected(Track track);
@@ -110,6 +111,7 @@ public class TracksFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Track track = mAdapter.getItem(position);
                 mCallback.onTrackSelected(track);
+                mSelectedPosition = position;
             }
         });
 
@@ -166,6 +168,18 @@ public class TracksFragment extends Fragment {
     public void restTracks() {
         mTracks.clear();
         mAdapter.notifyDataSetChanged();
+    }
+
+    public Track getPreviousTrack() {
+        if(mSelectedPosition > 0)
+            return mTracks.get(--mSelectedPosition);
+        return null;
+    }
+
+    public Track getNextTrack() {
+        if((mSelectedPosition + 1) < mTracks.size())
+            return mTracks.get(++mSelectedPosition);
+        return null;
     }
 
 }

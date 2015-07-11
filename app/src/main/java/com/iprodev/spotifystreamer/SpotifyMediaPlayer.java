@@ -83,7 +83,7 @@ public class SpotifyMediaPlayer implements MediaPlayer.OnPreparedListener, Media
     }
 
     public void skipTo(int to) {
-        to = mPlayer.getCurrentPosition() + to;
+//        to = mPlayer.getCurrentPosition() + to;
         mPlayer.seekTo(to);
     }
 
@@ -110,7 +110,9 @@ public class SpotifyMediaPlayer implements MediaPlayer.OnPreparedListener, Media
                     try {
                         Thread.sleep(250);
                         mCallbacks.onProgressUpdate(mPlayer.getCurrentPosition());
-                    } catch (InterruptedException e ) {
+                    } catch (IllegalStateException ie) {
+                        /* Nothing to do yet */
+                    }catch (InterruptedException e ) {
                         /* Nothing to do yet */
                     } catch (NullPointerException ne) {
                         /* Player can be null, this means stopAudio was called so we just ignore */
