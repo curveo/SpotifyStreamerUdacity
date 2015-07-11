@@ -1,21 +1,22 @@
 package com.iprodev.spotifystreamer.frags;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.iprodev.spotifystreamer.R;
-import com.iprodev.spotifystreamer.SpotifyMediaPlayer;
+import com.iprodev.spotifystreamer.model.SpotifyMediaPlayer;
 import com.squareup.picasso.Picasso;
+
+import java.io.Serializable;
 
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
@@ -47,6 +48,12 @@ public class PlayerFragment extends DialogFragment {
     private int mDuration;
     private TransportCallbacks mCallback;
     private boolean mIsModal;
+    private int mCurrentProgress;
+    private String mStreamURL;
+    private String artistName;
+    private String albumName;
+    private String imageUrl;
+    private String trackName;
 
     public interface TransportCallbacks {
         public Track getPreviousTrack();
@@ -66,6 +73,10 @@ public class PlayerFragment extends DialogFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if(savedInstanceState != null) {
+            mIsModal = savedInstanceState.getBoolean("mIsModal");
+        }
+//        setRetainInstance(true);
         if(mIsModal) {
             setStyle(DialogFragment.STYLE_NORMAL, android.R.style.Theme_Holo_Light_Dialog);
         } else {
@@ -73,9 +84,64 @@ public class PlayerFragment extends DialogFragment {
         }
     }
 
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if(savedInstanceState != null)
+            inflateUI();
+
+        String car = "http://www.podtrac.com/pts/redirect.mp3/traffic.libsyn.com/theadamcarollashow/2015-07-08acs_2015-07-07-200824-7770-0-8-0.64k.mp3";
+        if(mStreamURL == null)
+            mStreamURL = getArguments().getString(PlayerFragment.PREVIEW_URL);
+        startAudio(mStreamURL);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        player.stopAudio();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putInt("mCurrentProgress", mCurrentProgress);
+        outState.putString("mStreamURL", mStreamURL);
+        outState.putBoolean("mIsModal", mIsModal);
+        //UI metadata
+        outState.putString("artistName", artistName);
+        outState.putString("albumName", albumName);
+        outState.putString("imageUrl",imageUrl);
+        outState.putString("trackName", trackName);
+
+        super.onSaveInstanceState(outState);
+    }
+
+    public void setCallback(TransportCallbacks callback) {
+        mCallback = callback;
+    }
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        if(savedInstanceState != null) {
+            mCurrentProgress = savedInstanceState.getInt("mCurrentProgress");
+            mStreamURL = savedInstanceState.getString("mStreamURL");
+            mIsModal = savedInstanceState.getBoolean("mIsModal");
+            artistName = savedInstanceState.getString("artistName");
+            albumName = savedInstanceState.getString("albumName");
+            imageUrl = savedInstanceState.getString("imageUrl");
+            trackName = savedInstanceState.getString("trackName");
+        }
+
         View root = inflater.inflate(R.layout.frag_player,container, false);
         mPlayBtn = (ImageView) root.findViewById(R.id.btn_play);
         mPrevBtn = (ImageView) root.findViewById(R.id.btn_rewind);
@@ -86,21 +152,15 @@ public class PlayerFragment extends DialogFragment {
         mProgressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-//                player.skipTo(progress);
-                Log.d(TAG, "onProgressChanged seekBar.getProgress(): " + seekBar.getProgress()
-                    + ", progress: " + progress);
                 mProgressText.setText(convertMilliToFreindlyText(seekBar.getProgress()));
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
+            public void onStartTrackingTouch(SeekBar seekBar) { /*nothing here yet */ }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                Log.d(TAG, "onStopTracking progress: " + seekBar.getProgress());
                 player.skipTo(seekBar.getProgress());
-
             }
         });
 
@@ -115,10 +175,11 @@ public class PlayerFragment extends DialogFragment {
             @Override
             public void onClick(View v) {
                 Track track = mCallback.getPreviousTrack();
-                if(track != null) {
+                if (track != null) {
                     player.stopAudio();
                     inflateUI(track);
-                    startAudio(track.preview_url);
+                    mStreamURL = track.preview_url;
+                    startAudio(mStreamURL);
                 } else {
                     Toast.makeText(getActivity(), getString(R.string.no_more_tracks), Toast.LENGTH_SHORT).show();
                 }
@@ -129,56 +190,44 @@ public class PlayerFragment extends DialogFragment {
             @Override
             public void onClick(View v) {
                 Track track = mCallback.getNextTrack();
-                if(track != null) {
+                if (track != null) {
                     player.stopAudio();
                     inflateUI(track);
-                    startAudio(track.preview_url);
+                    mStreamURL = track.preview_url;
+                    startAudio(mStreamURL);
                 } else {
                     Toast.makeText(getActivity(), getString(R.string.no_more_tracks), Toast.LENGTH_SHORT).show();
                 }
             }
         });
 
-        Bundle extras = getArguments();
-        String artistName = extras.getString(ARTIST_NAME);
-        String albumName = extras.getString(ALBUM_NAME);
-        String imageUrl = extras.getString(IMAGE_URL);
-        String trackName = extras.getString(TRACK_NAME);
+        //Check mStreamURL to see if this is a rotation
+        if(savedInstanceState == null) {
+            Bundle extras = getArguments();
+            String artistName = extras.getString(ARTIST_NAME);
+            String albumName = extras.getString(ALBUM_NAME);
+            String imageUrl = extras.getString(IMAGE_URL);
+            String trackName = extras.getString(TRACK_NAME);
 
-        ((TextView)root.findViewById(R.id.text_artist_name)).setText(artistName);
-        ((TextView)root.findViewById(R.id.text_album_name)).setText(albumName);
-        ((TextView)root.findViewById(R.id.text_song_name)).setText(trackName);
-        Picasso.with(getActivity()).load(imageUrl).into((ImageView) root.findViewById(R.id.album_artwork));
+            ((TextView)root.findViewById(R.id.text_artist_name)).setText(artistName);
+            ((TextView)root.findViewById(R.id.text_album_name)).setText(albumName);
+            ((TextView)root.findViewById(R.id.text_song_name)).setText(trackName);
+            Picasso.with(getActivity()).load(imageUrl).into((ImageView) root.findViewById(R.id.album_artwork));
 
+        }
 
 
         return root;
     }
 
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        String car = "http://www.podtrac.com/pts/redirect.mp3/traffic.libsyn.com/theadamcarollashow/2015-07-08acs_2015-07-07-200824-7770-0-8-0.64k.mp3";
 
-        startAudio(car);//getArguments().getString(PlayerFragment.PREVIEW_URL));
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        player.stopAudio();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
 
     public void startAudio(String url) {
         if(player == null) {
             player = new SpotifyMediaPlayer(new SpotifyMediaPlayer.Callbacks() {
                 @Override
                 public void onStarted(int duration) {
+                    player.skipTo(mCurrentProgress);
                     mDuration = duration;
                     mPlayBtn.setImageResource(android.R.drawable.ic_media_pause);
                     getActivity().runOnUiThread(new Runnable() {
@@ -192,6 +241,7 @@ public class PlayerFragment extends DialogFragment {
                         }
                     });
                     mProgressBar.setMax(mDuration);
+
                 }
 
                 @Override
@@ -206,6 +256,7 @@ public class PlayerFragment extends DialogFragment {
 
                 @Override
                 public void onProgressUpdate(final int progress) {
+                    mCurrentProgress = progress;
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -236,10 +287,10 @@ public class PlayerFragment extends DialogFragment {
      *               Expects artist name, album name, album art url, and track name
      */
     public void setExtras(Bundle extras) {
-        String artistName = extras.getString(ARTIST_NAME);
-        String albumName = extras.getString(ALBUM_NAME);
-        String imageUrl = extras.getString(IMAGE_URL);
-        String trackName = extras.getString(TRACK_NAME);
+        artistName = extras.getString(ARTIST_NAME);
+        albumName = extras.getString(ALBUM_NAME);
+        imageUrl = extras.getString(IMAGE_URL);
+        trackName = extras.getString(TRACK_NAME);
 
         ((TextView)getView().findViewById(R.id.text_artist_name)).setText(artistName);
         ((TextView)getView().findViewById(R.id.text_album_name)).setText(albumName);
@@ -248,18 +299,31 @@ public class PlayerFragment extends DialogFragment {
     }
 
     private void inflateUI(Track track) {
-        ((TextView)getView().findViewById(R.id.text_artist_name)).setText(track.artists.get(0).name);
-        ((TextView)getView().findViewById(R.id.text_album_name)).setText(track.album.name);
-        ((TextView)getView().findViewById(R.id.text_song_name)).setText(track.name);
-        String imageUrl = null;
+        artistName = track.artists.get(0).name;
+        albumName = track.album.name;
+        trackName = track.name;
+        imageUrl = null;
         for(Image i : track.album.images) {
             if(i.height >= 300 ) {
                 imageUrl = i.url;
                 break;
             }
         }
-        String trackName = track.name;
+        inflateUI();
+    }
+
+    private void inflateUI() {
+        ((TextView)getView().findViewById(R.id.text_artist_name)).setText(artistName);
+        ((TextView)getView().findViewById(R.id.text_album_name)).setText(albumName);
+        ((TextView)getView().findViewById(R.id.text_song_name)).setText(trackName);
+//        String trackName = track.name;
         Picasso.with(getActivity()).load(imageUrl).into((ImageView) getView().findViewById(R.id.album_artwork));
+    }
+
+
+
+    private class PlayerTrack implements Serializable {
+
     }
 
     private String convertMilliToFreindlyText(int millis) {

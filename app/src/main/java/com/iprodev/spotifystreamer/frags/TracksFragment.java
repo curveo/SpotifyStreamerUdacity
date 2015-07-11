@@ -86,6 +86,14 @@ public class TracksFragment extends Fragment {
 
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(mTracks != null && mTracks.size() > 0) {
+
+        }
+    }
+
     public void setCallback(TracksFragCallback callback) {
         mCallback = callback;
     }
@@ -99,10 +107,16 @@ public class TracksFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+        if(savedInstanceState != null) {
+            mTracks = (ArrayList<Track>) savedInstanceState.getSerializable("mTracks");
+            mSelectedPosition = savedInstanceState.getInt("mSelectedPosition");
+        }
         View root = inflater.inflate(R.layout.frag_tracks, container, false);
 
         mTracksListView = (ListView) root.findViewById(R.id.results_artists_tracks_list);
-        mTracks = new ArrayList<Track>();
+        if(mTracks == null)
+            mTracks = new ArrayList<Track>();
         mAdapter = new TracksAdapter(getActivity(), mTracks);
         mTracksListView.setAdapter(mAdapter);
 
@@ -120,6 +134,9 @@ public class TracksFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+        if(mTracks != null && mTracks.size() > 0)
+            outState.putSerializable("mTracks",mTracks);
+        outState.putInt("mSelectedPosition",mSelectedPosition);
 //        outState
         super.onSaveInstanceState(outState);
     }

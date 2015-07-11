@@ -62,7 +62,8 @@ public class SearchFragment extends Fragment {
         mSpotIcon = (ImageView) root.findViewById(R.id.spot_icon);
 //        if(mQueryString != null)
 //            loadSearchData(mQueryString);
-        mResults = new ArrayList<Artist>();
+        if(mResults == null)
+            mResults = new ArrayList<Artist>();
         mResultsAdapter = new ArtistsAdaper(getActivity(), mResults);
         mResultsList.setAdapter(mResultsAdapter);
 
@@ -86,8 +87,8 @@ public class SearchFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-//        if(mResults != null && mResults.size() > 0)
-//            outState.putSerializable("mResults",mResults);
+        if(mResults != null && mResults.size() > 0)
+            outState.putSerializable("mResults",mResults);
         if(mPosition != ListView.INVALID_POSITION) {
             outState.putInt("mPosition", mPosition);
         }
@@ -130,9 +131,9 @@ public class SearchFragment extends Fragment {
         mResultsAdapter.notifyDataSetChanged();
         updateUI(false);
 //        mResultsList.smoothScrollToPosition(mPosition);
-        mResultsList.requestFocus();
-        mResultsList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-        mResultsList.setItemChecked(mPosition,true);
+//        mResultsList.requestFocus();
+//        mResultsList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+//        mResultsList.setItemChecked(mPosition,true);
     }
 
     public void updateUI(boolean clearUI) {

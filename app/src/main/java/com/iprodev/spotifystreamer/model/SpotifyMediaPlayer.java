@@ -1,4 +1,4 @@
-package com.iprodev.spotifystreamer;
+package com.iprodev.spotifystreamer.model;
 
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -47,6 +47,7 @@ public class SpotifyMediaPlayer implements MediaPlayer.OnPreparedListener, Media
     }
 
     public void startAudio(String url) {
+        Log.d(TAG, "startAudio with url: " + url);
         try {
             mPlayer = new MediaPlayer();
             mPlayer.setOnPreparedListener(this);
