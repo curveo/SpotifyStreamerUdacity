@@ -83,9 +83,7 @@ public class PlayerFragment extends DialogFragment {
             inflateUI();
         if (mStreamURL == null)
             mStreamURL = getArguments().getString(PlayerFragment.PREVIEW_URL);
-        String car = "http://www.podtrac.com/pts/redirect.mp3/traffic.libsyn.com/theadamcarollashow/2015-07-08acs_2015-07-07-200824-7770-0-8-0.64k.mp3";
-
-        startAudio(car);//mStreamURL);
+        startAudio(mStreamURL);
     }
 
     @Override
