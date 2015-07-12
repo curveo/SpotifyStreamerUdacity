@@ -1,6 +1,5 @@
-package com.iprodev.spotifystreamer;
+package com.iprodev.spotifystreamer.view;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 

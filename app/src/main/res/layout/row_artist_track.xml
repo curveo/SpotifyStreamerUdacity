@@ -11,7 +11,7 @@
         android:layout_height="100dp"
         android:layout_gravity="center_vertical"
         android:layout_margin="10dp"
-        android:contentDescription="Artist thumbnail"
+        android:contentDescription="@string/artist_thumb_help"
         android:src="@drawable/artist_placeholder" />
 
     <LinearLayout

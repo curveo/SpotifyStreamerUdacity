@@ -3,9 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
+    android:baselineAligned="false"
     android:divider="?android:attr/dividerHorizontal"
-    tools:context="com.iprodev.spotifystreamer.MainActivity">
+    android:orientation="horizontal"
+    tools:context="com.iprodev.spotifystreamer.view.MainActivity">
 
     <fragment
         android:id="@+id/main_container"
@@ -23,6 +24,7 @@
         android:id="@+id/toptracks_container"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="4" />
+        android:layout_weight="4"
+        tools:ignore="InconsistentLayout" />
 
 </LinearLayout>
