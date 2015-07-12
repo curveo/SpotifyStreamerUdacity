@@ -7,7 +7,13 @@
     <string name="noresults">No results found</string>
     <string name="no_tracks">No top tracks for this artist</string>
     <string name="no_more_tracks">No more tracks</string>
-    <string name="alert_dialog_ok">Ok</string>
+    <string name="alert_dialog_ok">OK</string>
+
+    <!-- Help texts -->
     <string name="spot_icon_help">spotify icon</string>
-    <string name="action_refresh">refresh</string>
+    <string name="artist_art_help">Artist Artwork</string>
+    <string name="artist_thumb_help">Artist Thumbnail</string>
+    <string name="player_play_help">Play Button</string>
+    <string name="player_next_help">Next Button</string>
+    <string name="player_prev_help">Previous Button</string>
 </resources>

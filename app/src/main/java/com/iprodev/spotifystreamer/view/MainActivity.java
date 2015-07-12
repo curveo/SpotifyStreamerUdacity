@@ -1,4 +1,4 @@
-package com.iprodev.spotifystreamer;
+package com.iprodev.spotifystreamer.view;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,13 +13,14 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.iprodev.spotifystreamer.R;
 import com.iprodev.spotifystreamer.frags.PlayerFragment;
 import com.iprodev.spotifystreamer.frags.SearchFragment;
 import com.iprodev.spotifystreamer.frags.TracksFragment;
+import com.iprodev.spotifystreamer.model.ArtistCustom;
 
 import java.util.List;
 
-import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
 
@@ -54,8 +55,8 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
             isTablet = true;
             if(savedInstanceState == null) {
                 getSupportFragmentManager().beginTransaction()
-                        .add(R.id.toptracks_container, TracksFragment.getInstance(getService(),this), TRACKS_FRAG)
-                        .commit();
+                    .add(R.id.toptracks_container, TracksFragment.getInstance(getService(), this), TRACKS_FRAG)
+                    .commit();
             }
         }
     }
@@ -71,19 +72,15 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
     @Override
     protected void onResume() {
         super.onResume();
-        //TODO: Consider optimizing network calls here.
-        if(mQueryString != null)
-//            mSearchFrag.loadSearchData(getService(), mQueryString);
         if(mArtistId != null && isTablet) {
             //Restore the fragment callbacks.
             TracksFragment frag = (TracksFragment)getSupportFragmentManager().findFragmentByTag(TRACKS_FRAG);
-            frag.setCallback(this);
             PlayerFragment mPlayerFrag = (PlayerFragment) getSupportFragmentManager().findFragmentByTag(PlayerFragment.TAG);
-            mPlayerFrag.setCallback(this);
-//            showTracksFrag(mArtistName,mArtistId);
+            if(frag != null)
+                frag.setCallback(this);
+            if(mPlayerFrag != null)
+                mPlayerFrag.setCallback(this);
         }
-
-//        loadSearchData("Foo Fighters"); //TODO: TEST DATA
     }
 
     @Override
@@ -97,35 +94,29 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
 
         final MenuItem searchItem = menu.findItem(R.id.action_search);
         final SearchViewCustom searchView = (SearchViewCustom) MenuItemCompat.getActionView(searchItem);
-        searchView.setCallback(new SearchViewCustom.SearchViewCallback() {
-            @Override
-            public void onCollapsed() {
-                //TODO: Way to handle when the search Menu is collapsed in two pane mode
-//                Fragment frag = getSupportFragmentManager().findFragmentByTag("TRACKS");
-//                mSearchFrag.updateUI(true);
-//                getSupportFragmentManager().beginTransaction()
-//                    .remove(frag)
-//                    .add(R.id.main_container,mSearchFrag)
-////                    .replace(R.id.main_container, mSearchFrag)
-//                    .commit();
-            }
-        });
         searchView.setQueryHint(getString(R.string.search_hint));
-//        if(mQueryString != null) searchView.setQuery(mQueryString, false);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 Log.d(TAG, "onQueryTextSubmit clicked with: " + query);
+                if(query.length() > 0) {
+                    mQueryString = query;
+                    mSearchFrag.loadSearchData(getService(), mQueryString);
+                    searchView.clearFocus();
+                    return true;
+                }
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String searchText) {
-                if (searchText.length() >= 3) {
-                    mQueryString = searchText;
-                    mSearchFrag.loadSearchData(getService(), searchText);
-                    return true;
-                }
+                //TODO: This can cause a lot of network calls.
+                //for now lets comment out and require search button instead.
+//                if (searchText.length() >= 3) {
+//                    mQueryString = searchText;
+//                    mSearchFrag.loadSearchData(getService(), searchText);
+//                    return true;
+//                }
                 return false;
             }
         });
@@ -161,7 +152,7 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
     }
 
     @Override
-    public void onArtistSelected(Artist artist) {
+    public void onArtistSelected(ArtistCustom artist) {
         Log.d(TAG, "artist id: " + artist.id);
         mArtistId = artist.id;
         mArtistName = artist.name;
@@ -172,34 +163,20 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
             startActivity(intent);
         } else {
             showTracksFrag(mArtistName,mArtistId);
-
         }
-
-
-        //TODO: Load the top tracks fragment in two pane mode.
-//        TracksFragment tracksFrag = TracksFragment.getInstance(getService(),artist.name,artist.id);
-//        getSupportFragmentManager().beginTransaction()
-//                .remove(mSearchFrag)
-//                .add(R.id.main_container, tracksFrag, "TRACKS")
-////                .replace(R.id.main_container, tracksFrag)
-//                .commit();
     }
 
     private void showTracksFrag(String aName, String aId) {
         TracksFragment track = TracksFragment.getInstance(getService(),this);
         track.loadFragData(getService(), aName, aId);
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.toptracks_container, track, TRACKS_FRAG)
-                .commit();
-//            TracksFragment track = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACKS_FRAG);
-//            track.loadFragData(getService(), artist.name, artist.id);
+            .replace(R.id.toptracks_container, track, TRACKS_FRAG)
+            .commit();
     }
 
 
     @Override
     public void onTrackSelected(Track track) {
-        String audioUrl = track.preview_url;
-
         String albumName = track.album.name;
         List<Image> images = track.album.images;
         String imageUrl = null;
@@ -230,7 +207,6 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
         ft.addToBackStack(null);
 
         //Get and show player.
-        //TODO: Pull the callbacks up and implement next and previous track.
         final TracksFragment frag = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACKS_FRAG);
         PlayerFragment mPlayerFrag = PlayerFragment.getInstance(this, bnd, true);
         mPlayerFrag.show(ft, PlayerFragment.TAG);
@@ -238,8 +214,7 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
 
     @Override
     public void onNoTracksAvailable() {
-        //TODO: maybe put focus on the listview in two pane mode?
-
+        /* Nothing here yet */
     }
 
     @Override

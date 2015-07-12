@@ -6,9 +6,6 @@ import android.util.Log;
 
 import java.io.IOException;
 
-/**
- * Created by curtis on 7/8/15.
- */
 public class SpotifyMediaPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
     public static final String TAG = "SpotifyMediaPlayer";
 
@@ -35,14 +32,13 @@ public class SpotifyMediaPlayer implements MediaPlayer.OnPreparedListener, Media
         ERROR
     }
 
-    public class SpotifyMediaPlayerError extends Exception{
-
+    public class SpotifyMediaPlayerError extends Exception {
         public SpotifyMediaPlayerError(String msg) {
             super(msg);
         }
     }
 
-    public SpotifyMediaPlayer(Callbacks callbacks){
+    public SpotifyMediaPlayer(Callbacks callbacks) {
         mCallbacks = callbacks;
     }
 
@@ -65,7 +61,7 @@ public class SpotifyMediaPlayer implements MediaPlayer.OnPreparedListener, Media
 
     /* Transport controls */
     public void play() {
-        switch(mPlayerState) {
+        switch (mPlayerState) {
             case PLAYING:
                 mPlayerState = PlayerState.PAUSED;
                 mPlayer.pause();
@@ -84,7 +80,6 @@ public class SpotifyMediaPlayer implements MediaPlayer.OnPreparedListener, Media
     }
 
     public void skipTo(int to) {
-//        to = mPlayer.getCurrentPosition() + to;
         mPlayer.seekTo(to);
     }
 
@@ -103,18 +98,21 @@ public class SpotifyMediaPlayer implements MediaPlayer.OnPreparedListener, Media
         startTrackingProgress();
     }
 
+    /* Thread used to track progress states and fire through callbacks */
     private void startTrackingProgress() {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                while(mPlayerState == PlayerState.PLAYING) {
+                //Make sure we are playing else end.
+                while (mPlayerState == PlayerState.PLAYING) {
                     try {
                         Thread.sleep(250);
                         mCallbacks.onProgressUpdate(mPlayer.getCurrentPosition());
                     } catch (IllegalStateException ie) {
-                        /* Nothing to do yet */
-                    }catch (InterruptedException e ) {
-                        /* Nothing to do yet */
+                        /* Player can throw this if it has already been stopped.
+                        This is a race condition that can happen when the player is stopped during the sleep */
+                    } catch (InterruptedException e) {
+                        /* Nothing to do for handling */
                     } catch (NullPointerException ne) {
                         /* Player can be null, this means stopAudio was called so we just ignore */
                     }

@@ -1,6 +1,5 @@
 package com.iprodev.spotifystreamer.frags;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
@@ -13,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.iprodev.spotifystreamer.R;
+import com.iprodev.spotifystreamer.Utils;
 import com.iprodev.spotifystreamer.model.SpotifyMediaPlayer;
 import com.squareup.picasso.Picasso;
 
@@ -21,9 +21,6 @@ import java.io.Serializable;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
 
-/**
- * Created by curtis on 7/8/15.
- */
 public class PlayerFragment extends DialogFragment {
 
     public static final String TAG = "PlayerFragment";
@@ -32,10 +29,6 @@ public class PlayerFragment extends DialogFragment {
     public static final String TRACK_NAME = "tname";
     public static final String IMAGE_URL = "iurl";
     public static final String PREVIEW_URL = "purl";
-    //Time constants
-    public static final int ONE_HOUR = 3600000;
-    public static final int ONE_MINUTE = 60000;
-    public static final int ONE_SECOND = 1000;
 
     private static PlayerFragment sInstance;
 
@@ -61,8 +54,7 @@ public class PlayerFragment extends DialogFragment {
     }
 
     public static PlayerFragment getInstance(TransportCallbacks callback, Bundle bnd, boolean isModal) {
-        if(sInstance == null)
-            sInstance = new PlayerFragment();
+        sInstance = new PlayerFragment();
         sInstance.mCallback = callback;
         sInstance.mIsModal = isModal;
         sInstance.setArguments(bnd);
@@ -73,11 +65,11 @@ public class PlayerFragment extends DialogFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(savedInstanceState != null) {
+        if (savedInstanceState != null) {
             mIsModal = savedInstanceState.getBoolean("mIsModal");
         }
-//        setRetainInstance(true);
-        if(mIsModal) {
+        //Conditionally set the style based on device type.
+        if (mIsModal) {
             setStyle(DialogFragment.STYLE_NORMAL, android.R.style.Theme_Holo_Light_Dialog);
         } else {
             setStyle(DialogFragment.STYLE_NO_FRAME, android.R.style.Theme_Holo_Light);
@@ -87,24 +79,19 @@ public class PlayerFragment extends DialogFragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        if(savedInstanceState != null)
+        if (savedInstanceState != null)
             inflateUI();
-
-        String car = "http://www.podtrac.com/pts/redirect.mp3/traffic.libsyn.com/theadamcarollashow/2015-07-08acs_2015-07-07-200824-7770-0-8-0.64k.mp3";
-        if(mStreamURL == null)
+        if (mStreamURL == null)
             mStreamURL = getArguments().getString(PlayerFragment.PREVIEW_URL);
-        startAudio(mStreamURL);
+        String car = "http://www.podtrac.com/pts/redirect.mp3/traffic.libsyn.com/theadamcarollashow/2015-07-08acs_2015-07-07-200824-7770-0-8-0.64k.mp3";
+
+        startAudio(car);//mStreamURL);
     }
 
     @Override
     public void onPause() {
         super.onPause();
         player.stopAudio();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
     }
 
     @Override
@@ -115,24 +102,19 @@ public class PlayerFragment extends DialogFragment {
         //UI metadata
         outState.putString("artistName", artistName);
         outState.putString("albumName", albumName);
-        outState.putString("imageUrl",imageUrl);
+        outState.putString("imageUrl", imageUrl);
         outState.putString("trackName", trackName);
-
         super.onSaveInstanceState(outState);
     }
 
     public void setCallback(TransportCallbacks callback) {
         mCallback = callback;
     }
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-    }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        if(savedInstanceState != null) {
+        if (savedInstanceState != null) {
             mCurrentProgress = savedInstanceState.getInt("mCurrentProgress");
             mStreamURL = savedInstanceState.getString("mStreamURL");
             mIsModal = savedInstanceState.getBoolean("mIsModal");
@@ -142,7 +124,7 @@ public class PlayerFragment extends DialogFragment {
             trackName = savedInstanceState.getString("trackName");
         }
 
-        View root = inflater.inflate(R.layout.frag_player,container, false);
+        View root = inflater.inflate(R.layout.frag_player, container, false);
         mPlayBtn = (ImageView) root.findViewById(R.id.btn_play);
         mPrevBtn = (ImageView) root.findViewById(R.id.btn_rewind);
         mNextBtn = (ImageView) root.findViewById(R.id.btn_fastforward);
@@ -152,7 +134,7 @@ public class PlayerFragment extends DialogFragment {
         mProgressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                mProgressText.setText(convertMilliToFreindlyText(seekBar.getProgress()));
+                mProgressText.setText(Utils.convertMilliToFriendlyText(seekBar.getProgress()));
             }
 
             @Override
@@ -202,18 +184,17 @@ public class PlayerFragment extends DialogFragment {
         });
 
         //Check mStreamURL to see if this is a rotation
-        if(savedInstanceState == null) {
+        if (savedInstanceState == null) {
             Bundle extras = getArguments();
-            String artistName = extras.getString(ARTIST_NAME);
-            String albumName = extras.getString(ALBUM_NAME);
-            String imageUrl = extras.getString(IMAGE_URL);
-            String trackName = extras.getString(TRACK_NAME);
+            artistName = extras.getString(ARTIST_NAME);
+            albumName = extras.getString(ALBUM_NAME);
+            imageUrl = extras.getString(IMAGE_URL);
+            trackName = extras.getString(TRACK_NAME);
 
-            ((TextView)root.findViewById(R.id.text_artist_name)).setText(artistName);
-            ((TextView)root.findViewById(R.id.text_album_name)).setText(albumName);
-            ((TextView)root.findViewById(R.id.text_song_name)).setText(trackName);
+            ((TextView) root.findViewById(R.id.text_artist_name)).setText(artistName);
+            ((TextView) root.findViewById(R.id.text_album_name)).setText(albumName);
+            ((TextView) root.findViewById(R.id.text_song_name)).setText(trackName);
             Picasso.with(getActivity()).load(imageUrl).into((ImageView) root.findViewById(R.id.album_artwork));
-
         }
 
 
@@ -221,9 +202,8 @@ public class PlayerFragment extends DialogFragment {
     }
 
 
-
     public void startAudio(String url) {
-        if(player == null) {
+        if (player == null) {
             player = new SpotifyMediaPlayer(new SpotifyMediaPlayer.Callbacks() {
                 @Override
                 public void onStarted(int duration) {
@@ -233,15 +213,11 @@ public class PlayerFragment extends DialogFragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-    //                        Toast.makeText(getActivity(), "DEBUG: started playing, duration: "
-    //                                + mDuration, Toast.LENGTH_SHORT).show();
-
-                            TextView dur = (TextView)getView().findViewById(R.id.text_duration);
-                            dur.setText(convertMilliToFreindlyText(mDuration));
+                            TextView dur = (TextView) getView().findViewById(R.id.text_duration);
+                            dur.setText(Utils.convertMilliToFriendlyText(mDuration));
                         }
                     });
                     mProgressBar.setMax(mDuration);
-
                 }
 
                 @Override
@@ -260,7 +236,7 @@ public class PlayerFragment extends DialogFragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            mProgressText.setText(convertMilliToFreindlyText(progress));
+                            mProgressText.setText(Utils.convertMilliToFriendlyText(progress));
                             mProgressBar.setProgress(progress);
 
                         }
@@ -269,7 +245,18 @@ public class PlayerFragment extends DialogFragment {
 
                 @Override
                 public void onComplete() {
-                    getActivity().onBackPressed();
+                    //Autoplay feature that will go through all available tracks automatically until
+                    // the last one is reached showing a toast and dismissing the player.
+                    Track track = mCallback.getNextTrack();
+                    if (track != null) {
+                        player.stopAudio();
+                        inflateUI(track);
+                        mStreamURL = track.preview_url;
+                        startAudio(mStreamURL);
+                    } else {
+                        Toast.makeText(getActivity(),getString(R.string.no_more_tracks),Toast.LENGTH_LONG).show();
+                        getActivity().onBackPressed();
+                    }
                 }
 
                 @Override
@@ -283,6 +270,7 @@ public class PlayerFragment extends DialogFragment {
 
     /**
      * Sets the metadata for the UI
+     *
      * @param extras bundle that contains the metadata.
      *               Expects artist name, album name, album art url, and track name
      */
@@ -292,9 +280,9 @@ public class PlayerFragment extends DialogFragment {
         imageUrl = extras.getString(IMAGE_URL);
         trackName = extras.getString(TRACK_NAME);
 
-        ((TextView)getView().findViewById(R.id.text_artist_name)).setText(artistName);
-        ((TextView)getView().findViewById(R.id.text_album_name)).setText(albumName);
-        ((TextView)getView().findViewById(R.id.text_song_name)).setText(trackName);
+        ((TextView) getView().findViewById(R.id.text_artist_name)).setText(artistName);
+        ((TextView) getView().findViewById(R.id.text_album_name)).setText(albumName);
+        ((TextView) getView().findViewById(R.id.text_song_name)).setText(trackName);
         Picasso.with(getActivity()).load(imageUrl).into((ImageView) getView().findViewById(R.id.album_artwork));
     }
 
@@ -303,8 +291,8 @@ public class PlayerFragment extends DialogFragment {
         albumName = track.album.name;
         trackName = track.name;
         imageUrl = null;
-        for(Image i : track.album.images) {
-            if(i.height >= 300 ) {
+        for (Image i : track.album.images) {
+            if (i.height >= 300) {
                 imageUrl = i.url;
                 break;
             }
@@ -313,59 +301,14 @@ public class PlayerFragment extends DialogFragment {
     }
 
     private void inflateUI() {
-        ((TextView)getView().findViewById(R.id.text_artist_name)).setText(artistName);
-        ((TextView)getView().findViewById(R.id.text_album_name)).setText(albumName);
-        ((TextView)getView().findViewById(R.id.text_song_name)).setText(trackName);
-//        String trackName = track.name;
+        ((TextView) getView().findViewById(R.id.text_artist_name)).setText(artistName);
+        ((TextView) getView().findViewById(R.id.text_album_name)).setText(albumName);
+        ((TextView) getView().findViewById(R.id.text_song_name)).setText(trackName);
         Picasso.with(getActivity()).load(imageUrl).into((ImageView) getView().findViewById(R.id.album_artwork));
     }
 
 
-
     private class PlayerTrack implements Serializable {
 
-    }
-
-    private String convertMilliToFreindlyText(int millis) {
-        String retVal = "";
-        int hours = 0;
-        int minutes = 0;
-        int seconds = 0;
-
-        //Extract hour
-        if(millis > ONE_HOUR) {
-            float f = millis / ONE_HOUR;
-            hours = (int) Math.floor(f);
-        }
-        //Extract minutes
-        if(hours > 0) {
-            int tmp = millis - (hours * ONE_HOUR);
-            float f = tmp / ONE_MINUTE;
-            minutes = (int) Math.floor(f);
-        } else {
-            float f = millis / ONE_MINUTE;
-            minutes = (int) Math.floor(f);
-        }
-        if(millis > ONE_MINUTE) {
-        }
-        //Extract seconds
-        if(hours > 0) {
-            int tmp = millis - (hours * ONE_HOUR);
-            tmp = tmp - (minutes * ONE_MINUTE);
-            seconds = (int)Math.floor(tmp / ONE_SECOND);
-        } else if(minutes > 0) {
-            int tmp = millis - (minutes * ONE_MINUTE);
-            seconds = (int)Math.floor(tmp / ONE_SECOND);
-        } else{
-            seconds = (int)Math.floor(millis / ONE_SECOND);
-        }
-        if(seconds < 10) {
-            retVal = (hours > 0) ? hours + ":":"" + minutes + ":0" + seconds;
-        } else {
-            retVal = (hours > 0) ? hours + ":":"";
-            retVal = retVal + minutes + ":" + seconds;
-        }
-
-        return retVal;
     }
 }

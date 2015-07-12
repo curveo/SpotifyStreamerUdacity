@@ -16,9 +16,6 @@ import java.util.ArrayList;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
 
-/**
- * Created by curtisashby on 6/22/15.
- */
 public class TracksAdapter extends BaseAdapter {
     private Context mContext;
     private ArrayList<Track> mResults;
@@ -47,7 +44,7 @@ public class TracksAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         //ViewHolder design patter for scroll performance.
         ViewHolder holder;
-        if(convertView == null) {
+        if (convertView == null) {
             LayoutInflater inflator = LayoutInflater.from(mContext);
             convertView = inflator.inflate(R.layout.row_artist_track, parent, false);
             holder = new ViewHolder();
@@ -61,15 +58,15 @@ public class TracksAdapter extends BaseAdapter {
         Track track = getItem(position);
 
 
-        if(track.album.images.size() > 0 ) {
+        if (track.album.images.size() > 0) {
             Image thumb = null;
-            for(Image thumbUrl: track.album.images) {
-                //TODO conditionally grab the correct url based on size.
-                if(thumbUrl.height >= 100 && thumbUrl.height <= 300) {
+            for (Image thumbUrl : track.album.images) {
+                //conditionally grab the correct url based on size.
+                if (thumbUrl.height >= 100 && thumbUrl.height <= 300) {
                     thumb = thumbUrl;
                 }
             }
-            if(thumb != null)
+            if (thumb != null)
                 Picasso.with(mContext).load(thumb.url).into(holder.mImageV);
         } else {
             holder.mImageV.setImageResource(R.drawable.artist_placeholder);

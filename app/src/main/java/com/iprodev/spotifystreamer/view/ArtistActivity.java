@@ -1,15 +1,15 @@
-package com.iprodev.spotifystreamer;
+package com.iprodev.spotifystreamer.view;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.iprodev.spotifystreamer.R;
 import com.iprodev.spotifystreamer.frags.PlayerFragment;
 import com.iprodev.spotifystreamer.frags.TracksFragment;
 
@@ -22,7 +22,7 @@ import static com.iprodev.spotifystreamer.frags.TracksFragment.ARTIST_ID;
 import static com.iprodev.spotifystreamer.frags.TracksFragment.ARTIST_NAME;
 
 
-public class ArtistActivity extends BaseActivity implements TracksFragment.TracksFragCallback {
+public class ArtistActivity extends BaseActivity implements TracksFragment.TracksFragCallback, PlayerFragment.TransportCallbacks {
     private static final String TAG = "ArtistActivity";
     private String mArtistName;
 
@@ -40,20 +40,26 @@ public class ArtistActivity extends BaseActivity implements TracksFragment.Track
         frag.loadFragData(getService(), mArtistName, artitsId);
 
         ActionBar actionBar = getSupportActionBar();
-        actionBar.setSubtitle(mArtistName);
+        if(mArtistName != null)
+            actionBar.setSubtitle(mArtistName);
         actionBar.setDisplayHomeAsUpEnabled(true);
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        PlayerFragment frag = (PlayerFragment) getSupportFragmentManager().findFragmentByTag(PlayerFragment.TAG);
+        if (frag != null)
+            frag.setCallback(this);
     }
 
     @Override
     public void onTrackSelected(Track track) {
-        String audioUrl = track.preview_url;
-
         String albumName = track.album.name;
         List<Image> images = track.album.images;
         String imageUrl = null;
-        for(Image i : images) {
-            if(i.height >= 300 ) {
+        for (Image i : images) {
+            if (i.height >= 300) {
                 imageUrl = i.url;
                 break;
             }
@@ -72,7 +78,7 @@ public class ArtistActivity extends BaseActivity implements TracksFragment.Track
 
         //Initiate the PlayerFragment and add to backstack.
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        PlayerFragment prev = (PlayerFragment)getSupportFragmentManager().findFragmentByTag(PlayerFragment.TAG);
+        PlayerFragment prev = (PlayerFragment) getSupportFragmentManager().findFragmentByTag(PlayerFragment.TAG);
         if (prev != null) {
             ft.remove(prev);
         }
@@ -81,17 +87,7 @@ public class ArtistActivity extends BaseActivity implements TracksFragment.Track
         //Get and show player.
         //TODO: Pull the callbacks up and implement next and previous track.
         final TracksFragment frag = (TracksFragment) getSupportFragmentManager().findFragmentById(R.id.toptracks_fragment);
-        PlayerFragment playerFrag = PlayerFragment.getInstance(new PlayerFragment.TransportCallbacks() {
-            @Override
-            public Track getPreviousTrack() {
-                return frag.getPreviousTrack();
-            }
-
-            @Override
-            public Track getNextTrack() {
-                return frag.getNextTrack();
-            }
-        }, bnd, false);
+        PlayerFragment playerFrag = PlayerFragment.getInstance(this, bnd, false);
         playerFrag.show(ft, PlayerFragment.TAG);
     }
 
@@ -103,7 +99,7 @@ public class ArtistActivity extends BaseActivity implements TracksFragment.Track
 
     @Override
     protected void setHandlers() {
-
+        /* nothing to do here */
     }
 
     @Override
@@ -121,10 +117,22 @@ public class ArtistActivity extends BaseActivity implements TracksFragment.Track
                 onBackPressed();
                 return true;
             case R.id.action_settings:
-                Toast.makeText(this,"No settings yet, implement me!",Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "No settings yet, implement me!", Toast.LENGTH_SHORT).show();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    public Track getPreviousTrack() {
+        TracksFragment frag = (TracksFragment) getSupportFragmentManager().findFragmentById(R.id.toptracks_fragment);
+        return frag.getPreviousTrack();
+    }
+
+    @Override
+    public Track getNextTrack() {
+        TracksFragment frag = (TracksFragment) getSupportFragmentManager().findFragmentById(R.id.toptracks_fragment);
+        return frag.getNextTrack();
     }
 }

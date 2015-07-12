@@ -5,35 +5,21 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal">
 
-    <!--<FrameLayout-->
-        <!--android:layout_width="100dp"-->
-        <!--android:layout_height="100dp"-->
-        <!--android:layout_weight="1">-->
-
-        <ImageView
-
-            android:id="@+id/result_artist_thumb"
-            android:layout_width="75dp"
-            android:layout_height="100dp"
-            android:layout_gravity="center_vertical"
-            android:layout_margin="10dp"
-            android:contentDescription="Artist thumbnail"
-
-            android:src="@drawable/artist_placeholder" />
-    <!--android:maxHeight="100dp"-->
-    <!--android:maxWidth="100dp"-->
-    <!--android:minHeight="100dp"-->
-    <!--android:minWidth="100dp"-->
-
-    <!--</FrameLayout>-->
+    <ImageView
+        android:id="@+id/result_artist_thumb"
+        android:layout_width="75dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center_vertical"
+        android:layout_margin="10dp"
+        android:contentDescription="@string/artist_thumb_help"
+        android:src="@drawable/artist_placeholder" />
 
     <TextView
         android:id="@+id/result_artist_name"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_gravity="center"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:layout_weight="2"
-        android:text="@string/result_artist_title"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 </LinearLayout>
