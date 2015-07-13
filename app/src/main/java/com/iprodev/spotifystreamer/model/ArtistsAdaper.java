@@ -13,17 +13,11 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
-import kaaes.spotify.webapi.android.models.Artist;
-import kaaes.spotify.webapi.android.models.Image;
-
-/**
- * Created by curtisashby on 6/22/15.
- */
 public class ArtistsAdaper extends BaseAdapter {
     private Context mContext;
-    private ArrayList<Artist> mResults;
+    private ArrayList<ArtistCustom> mResults;
 
-    public ArtistsAdaper(Context c, ArrayList<Artist> results) {
+    public ArtistsAdaper(Context c, ArrayList<ArtistCustom> results) {
         mContext = c;
         mResults = results;
     }
@@ -34,7 +28,7 @@ public class ArtistsAdaper extends BaseAdapter {
     }
 
     @Override
-    public Artist getItem(int position) {
+    public ArtistCustom getItem(int position) {
         return mResults.get(position);
     }
 
@@ -47,7 +41,7 @@ public class ArtistsAdaper extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         //ViewHolder design patter for scroll performance.
         ViewHolder holder;
-        if(convertView == null) {
+        if (convertView == null) {
             LayoutInflater inflator = LayoutInflater.from(mContext);
             convertView = inflator.inflate(R.layout.row_result, parent, false);
             holder = new ViewHolder();
@@ -57,17 +51,17 @@ public class ArtistsAdaper extends BaseAdapter {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-        Artist result = getItem(position);
+        ArtistCustom result = getItem(position);
         holder.mImageV.setImageResource(R.drawable.artist_placeholder);
-        if(result.images.size() > 0 ) {
-            Image thumb = null;
-            for(Image thumbUrl: result.images) {
-                //TODO conditionally grab the correct url based on size.
-                if(thumbUrl.height >= 100 && thumbUrl.height <= 300) {
+        if (result.images.size() > 0) {
+            ImageCustom thumb = null;
+            for (ImageCustom thumbUrl : result.images) {
+                //conditionally grab the correct url based on size.
+                if (thumbUrl.height >= 100 && thumbUrl.height <= 300) {
                     thumb = thumbUrl;
                 }
             }
-            if(null != thumb)
+            if (thumb != null)
                 Picasso.with(mContext).load(thumb.url).into(holder.mImageV);
         }
         holder.mArtist.setTag(result);
