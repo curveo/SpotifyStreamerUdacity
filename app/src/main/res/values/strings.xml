@@ -16,4 +16,6 @@
     <string name="player_play_help">Play Button</string>
     <string name="player_next_help">Next Button</string>
     <string name="player_prev_help">Previous Button</string>
+
+    <string name="service_error">Error getting data from service: </string>
 </resources>

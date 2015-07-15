@@ -21,6 +21,7 @@ import java.util.TreeMap;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.Tracks;
+import retrofit.RetrofitError;
 
 public class TracksFragment extends Fragment {
     public static final String TAG = "TracksFragment";
@@ -39,6 +40,7 @@ public class TracksFragment extends Fragment {
     public interface TracksFragCallback {
         public void onTrackSelected(Track track);
         public void onNoTracksAvailable();
+        public void onServiceError(Exception e);
     }
 
     public static TracksFragment getInstance(SpotifyService service, TracksFragCallback callback) {
@@ -95,37 +97,44 @@ public class TracksFragment extends Fragment {
     }
 
     public void loadTracks(final String artistId) {
-        new AsyncTask<String, Void, Tracks>() {
+        new AsyncTask<String, Void, Exception>() {
+            Tracks tracks;
 
             @Override
-            protected Tracks doInBackground(String... artistIds) {
-                TreeMap<String, Object> params = new TreeMap<String, Object>();
-                //Must be included else api call will fail! This should probably be localized.
-                params.put("country", "US");
-                final Tracks tracks = mService.getArtistTopTrack(artistIds[0], params);
-                return tracks;
+            protected Exception doInBackground(String... artistIds) {
+                try {
+                    TreeMap<String, Object> params = new TreeMap<String, Object>();
+                    //Must be included else api call will fail! This should probably be localized.
+                    params.put("country", "US");
+                    tracks = mService.getArtistTopTrack(artistIds[0], params);
+                } catch(RetrofitError e) { return e; }
+                return null;
             }
 
             @Override
-            protected void onPostExecute(Tracks tracks) {
-                mTracks.clear();
-                if (null != tracks && tracks.tracks.size() > 0) {
-                    mTracks.addAll(tracks.tracks);
+            protected void onPostExecute(Exception retVal) {
+                if(retVal != null) {
+                    mCallback.onServiceError(retVal);
                 } else {
-                    new AlertDialog.Builder(getActivity())
-                            .setIcon(R.drawable.spotify_icon)
-                            .setTitle(getString(R.string.no_tracks))
-                            .setPositiveButton(R.string.alert_dialog_ok,
-                                    new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            //Nothing to do but dismiss dialog
-                                            mCallback.onNoTracksAvailable();
-                                        }
-                                    })
-                            .show();
+                    mTracks.clear();
+                    if (null != tracks && tracks.tracks.size() > 0) {
+                        mTracks.addAll(tracks.tracks);
+                    } else {
+                        new AlertDialog.Builder(getActivity())
+                                .setIcon(R.drawable.spotify_icon)
+                                .setTitle(getString(R.string.no_tracks))
+                                .setPositiveButton(R.string.alert_dialog_ok,
+                                        new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                //Nothing to do but dismiss dialog
+                                                mCallback.onNoTracksAvailable();
+                                            }
+                                        })
+                                .show();
+                    }
+                    mAdapter.notifyDataSetChanged();
                 }
-                mAdapter.notifyDataSetChanged();
             }
         }.execute(artistId);
     }

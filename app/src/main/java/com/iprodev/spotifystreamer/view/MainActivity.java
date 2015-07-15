@@ -173,11 +173,12 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
     }
 
     private void showTracksFrag(String aName, String aId) {
-        TracksFragment track = TracksFragment.getInstance(getService(),this);
+        TracksFragment track = TracksFragment.getInstance(getService(), this);
         track.loadFragData(getService(), aName, aId);
-        getSupportFragmentManager().beginTransaction()
-            .replace(R.id.toptracks_container, track, TRACKS_FRAG)
-            .commit();
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.addToBackStack(null);
+        ft.replace(R.id.toptracks_container, track, TRACKS_FRAG)
+                .commit();
     }
 
 
@@ -233,5 +234,18 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
     public Track getNextTrack() {
         TracksFragment frag = (TracksFragment)getSupportFragmentManager().findFragmentByTag(TRACKS_FRAG);
         return frag.getNextTrack();
+    }
+
+    @Override
+    public void onServiceError(Exception e) {
+        showServiceError(e);
+        //Check if in tablet mode AND tracks fragment is visible to prevent back exiting the app.
+        if(isTablet && getSupportFragmentManager().findFragmentByTag(PlayerFragment.TAG) != null)
+            onBackPressed();
+    }
+
+    @Override
+    public void onMediaPlayerError(Exception e) {
+        onServiceError(e);
     }
 }

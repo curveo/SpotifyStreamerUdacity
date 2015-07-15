@@ -23,6 +23,7 @@ import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
 import kaaes.spotify.webapi.android.models.Image;
+import retrofit.RetrofitError;
 
 public class SearchFragment extends Fragment {
     private static SearchFragment sInstance;
@@ -37,6 +38,7 @@ public class SearchFragment extends Fragment {
 
     public interface SearchCallbacks {
         public void onArtistSelected(ArtistCustom artist);
+        public void onServiceError(Exception e);
     }
 
     public static SearchFragment getInstance(SearchCallbacks callbacks) {
@@ -94,7 +96,7 @@ public class SearchFragment extends Fragment {
             inflateSearchResults();
         if (mPosition != ListView.INVALID_POSITION) {
             mResultsList.smoothScrollToPosition(mPosition);
-            mResultsList.setSelection(mPosition);
+//            mResultsList.setSelection(mPosition);
         }
     }
 
@@ -103,33 +105,39 @@ public class SearchFragment extends Fragment {
     }
 
     public void loadSearchData(final SpotifyService service, final String search) {
-        new AsyncTask<Void, Void, Void>() {
+        new AsyncTask<Void, Void, Exception>() {
 
             @Override
-            protected Void doInBackground(Void... params) {
-                ArtistsPager results = service.searchArtists(search);
-                Log.d(TAG, results.toString());
-                mResults.clear();
-                for (Artist a : results.artists.items) {
-                    ArtistCustom ac = new ArtistCustom();
-                    ac.name = a.name;
-                    ac.id = a.id;
-                    ac.images = new ArrayList<ImageCustom>();
-                    for (Image i : a.images) {
-                        ImageCustom ic = new ImageCustom();
-                        ic.width = i.width;
-                        ic.height = i.height;
-                        ic.url = i.url;
-                        ac.images.add(ic);
+            protected Exception doInBackground(Void... params) {
+                try {
+                    ArtistsPager results = service.searchArtists(search);
+                    Log.d(TAG, results.toString());
+                    mResults.clear();
+                    for (Artist a : results.artists.items) {
+                        ArtistCustom ac = new ArtistCustom();
+                        ac.name = a.name;
+                        ac.id = a.id;
+                        ac.images = new ArrayList<ImageCustom>();
+                        for (Image i : a.images) {
+                            ImageCustom ic = new ImageCustom();
+                            ic.width = i.width;
+                            ic.height = i.height;
+                            ic.url = i.url;
+                            ac.images.add(ic);
+                        }
+                        mResults.add(ac);
                     }
-                    mResults.add(ac);
-                }
+                } catch (RetrofitError e) { return e; }
                 return null;
             }
 
             @Override
-            protected void onPostExecute(Void aVoid) {
-                inflateSearchResults();
+            protected void onPostExecute(Exception retVal) {
+                if(retVal == null) {
+                    inflateSearchResults();
+                } else {
+                    mCallbacks.onServiceError(retVal);
+                }
             }
         }.execute();
     }
