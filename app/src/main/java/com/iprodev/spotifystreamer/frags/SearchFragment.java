@@ -92,6 +92,10 @@ public class SearchFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         if (mResults != null && mResults.size() > 0)
             inflateSearchResults();
+        if (mPosition != ListView.INVALID_POSITION) {
+            mResultsList.smoothScrollToPosition(mPosition);
+            mResultsList.setSelection(mPosition);
+        }
     }
 
     public void setCallbacks(SearchCallbacks mCallbacks) {

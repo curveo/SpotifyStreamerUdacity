@@ -94,6 +94,10 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
 
         final MenuItem searchItem = menu.findItem(R.id.action_search);
         final SearchViewCustom searchView = (SearchViewCustom) MenuItemCompat.getActionView(searchItem);
+        if(mQueryString != null) {
+            searchView.setIconified(false);
+            searchView.setQuery(mQueryString, false);
+        }
         searchView.setQueryHint(getString(R.string.search_hint));
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -126,6 +130,8 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
 
             @Override
             public void onClick(View v) {
+                searchView.setIconified(true);
+                mQueryString = null;
                 EditText text = (EditText) findViewById(R.id.search_src_text);
                 text.setText("");
                 searchView.setQuery("", false);

@@ -5,7 +5,7 @@
     <item android:id="@+id/action_search"
         android:icon="@android:drawable/ic_menu_search"
         android:title="@string/result_artist_title"
-        app:showAsAction="ifRoom|collapseActionView"
+        app:showAsAction="always"
         app:actionViewClass="com.iprodev.spotifystreamer.view.SearchViewCustom" />
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" app:showAsAction="never" />
