@@ -135,4 +135,17 @@ public class ArtistActivity extends BaseActivity implements TracksFragment.Track
         TracksFragment frag = (TracksFragment) getSupportFragmentManager().findFragmentById(R.id.toptracks_fragment);
         return frag.getNextTrack();
     }
+
+    @Override
+    public void onServiceError(Exception e) {
+        showServiceError(e);
+        onBackPressed();
+    }
+
+    @Override
+    public void onMediaPlayerError(Exception e) {
+        onServiceError(e);
+    }
+
+
 }
