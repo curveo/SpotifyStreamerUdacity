@@ -112,6 +112,11 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
                 }
                 return false;
             }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
         });
         //Capture the clear text event to properly handle the ui updates.
         ImageView closeButton = (ImageView)searchView.findViewById(R.id.search_close_btn);
