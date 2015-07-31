@@ -1,6 +1,8 @@
 package com.iprodev.spotifystreamer.frags;
 
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -11,9 +13,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.iprodev.spotifystreamer.R;
 import com.iprodev.spotifystreamer.model.TracksAdapter;
+import com.iprodev.spotifystreamer.view.MainActivity;
 
 import java.util.ArrayList;
 import java.util.TreeMap;
@@ -21,6 +25,7 @@ import java.util.TreeMap;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.Tracks;
+import retrofit.RetrofitError;
 
 public class TracksFragment extends Fragment {
     public static final String TAG = "TracksFragment";
@@ -35,10 +40,12 @@ public class TracksFragment extends Fragment {
     private SpotifyService mService;
     private TracksFragCallback mCallback;
     private int mSelectedPosition;
+    private String mAID;
 
     public interface TracksFragCallback {
         public void onTrackSelected(Track track);
         public void onNoTracksAvailable();
+        public void onServiceError(Exception e);
     }
 
     public static TracksFragment getInstance(SpotifyService service, TracksFragCallback callback) {
@@ -54,9 +61,19 @@ public class TracksFragment extends Fragment {
         mCallback = callback;
     }
 
-    public void loadFragData(SpotifyService service, String aName, String aID) {
+    public void loadFragData(SpotifyService service, String aID) {
         mService = service;
-        loadTracks(aID);
+        if(null == getActivity()) {
+            mAID = aID;
+        } else {
+            loadTracks(aID);
+        }
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if(mAID != null) loadTracks(mAID);
     }
 
     @Nullable
@@ -95,37 +112,57 @@ public class TracksFragment extends Fragment {
     }
 
     public void loadTracks(final String artistId) {
-        new AsyncTask<String, Void, Tracks>() {
+        new AsyncTask<String, Void, Exception>() {
+            Tracks tracks;
 
             @Override
-            protected Tracks doInBackground(String... artistIds) {
-                TreeMap<String, Object> params = new TreeMap<String, Object>();
-                //Must be included else api call will fail! This should probably be localized.
-                params.put("country", "US");
-                final Tracks tracks = mService.getArtistTopTrack(artistIds[0], params);
-                return tracks;
+            protected Exception doInBackground(String... artistIds) {
+                try {
+                    TreeMap<String, Object> params = new TreeMap<String, Object>();
+                    //Must be included else api call will fail! This should probably be localized.
+                    SharedPreferences prefs = getActivity().getSharedPreferences(SettingsFragment.PREFS, Context.MODE_PRIVATE);
+                    String code = prefs.getString(SettingsFragment.COUNTRY_CODE, null);
+                    if(code == null) {
+                        code = "us";
+                        //Set default to us
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(getActivity(),getString(R.string.country_code_default_notify),Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                        prefs.edit().putString(SettingsFragment.COUNTRY_CODE,code).commit();
+                    }
+                    params.put("country", code);
+                    tracks = mService.getArtistTopTrack(artistIds[0], params);
+                } catch(RetrofitError e) { return e; }
+                return null;
             }
 
             @Override
-            protected void onPostExecute(Tracks tracks) {
-                mTracks.clear();
-                if (null != tracks && tracks.tracks.size() > 0) {
-                    mTracks.addAll(tracks.tracks);
+            protected void onPostExecute(Exception retVal) {
+                if(retVal != null) {
+                    mCallback.onServiceError(retVal);
                 } else {
-                    new AlertDialog.Builder(getActivity())
-                            .setIcon(R.drawable.spotify_icon)
-                            .setTitle(getString(R.string.no_tracks))
-                            .setPositiveButton(R.string.alert_dialog_ok,
-                                    new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            //Nothing to do but dismiss dialog
-                                            mCallback.onNoTracksAvailable();
-                                        }
-                                    })
-                            .show();
+                    mTracks.clear();
+                    if (null != tracks && tracks.tracks.size() > 0) {
+                        mTracks.addAll(tracks.tracks);
+                    } else {
+                        new AlertDialog.Builder(getActivity())
+                                .setIcon(R.drawable.spotify_icon)
+                                .setTitle(getString(R.string.no_tracks))
+                                .setPositiveButton(R.string.alert_dialog_ok,
+                                        new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                //Nothing to do but dismiss dialog
+                                                mCallback.onNoTracksAvailable();
+                                            }
+                                        })
+                                .show();
+                    }
+                    mAdapter.notifyDataSetChanged();
                 }
-                mAdapter.notifyDataSetChanged();
             }
         }.execute(artistId);
     }

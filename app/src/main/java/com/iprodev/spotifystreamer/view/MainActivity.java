@@ -11,13 +11,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.iprodev.spotifystreamer.R;
 import com.iprodev.spotifystreamer.frags.PlayerFragment;
 import com.iprodev.spotifystreamer.frags.SearchFragment;
+import com.iprodev.spotifystreamer.frags.SettingsFragment;
 import com.iprodev.spotifystreamer.frags.TracksFragment;
 import com.iprodev.spotifystreamer.model.ArtistCustom;
+import com.iprodev.spotifystreamer.model.SearchViewCustom;
 
 import java.util.List;
 
@@ -94,6 +95,10 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
 
         final MenuItem searchItem = menu.findItem(R.id.action_search);
         final SearchViewCustom searchView = (SearchViewCustom) MenuItemCompat.getActionView(searchItem);
+        if(mQueryString != null) {
+            searchView.setIconified(false);
+            searchView.setQuery(mQueryString, false);
+        }
         searchView.setQueryHint(getString(R.string.search_hint));
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -107,18 +112,6 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
                 }
                 return false;
             }
-
-            @Override
-            public boolean onQueryTextChange(String searchText) {
-                //TODO: This can cause a lot of network calls.
-                //for now lets comment out and require search button instead.
-//                if (searchText.length() >= 3) {
-//                    mQueryString = searchText;
-//                    mSearchFrag.loadSearchData(getService(), searchText);
-//                    return true;
-//                }
-                return false;
-            }
         });
         //Capture the clear text event to properly handle the ui updates.
         ImageView closeButton = (ImageView)searchView.findViewById(R.id.search_close_btn);
@@ -126,6 +119,8 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
 
             @Override
             public void onClick(View v) {
+                searchView.setIconified(true);
+                mQueryString = null;
                 EditText text = (EditText) findViewById(R.id.search_src_text);
                 text.setText("");
                 searchView.setQuery("", false);
@@ -144,7 +139,16 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             case R.id.action_settings:
-                Toast.makeText(this,"No settings yet, implement me!",Toast.LENGTH_SHORT).show();
+                //Check for fragment existance and add to backstack.
+                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                SettingsFragment prev = (SettingsFragment)getSupportFragmentManager().findFragmentByTag(SettingsFragment.TAG);
+                if (prev != null) {
+                    ft.remove(prev);
+                }
+                ft.addToBackStack(null);
+                //Get and show settings fragment.
+                SettingsFragment settingsFrag = SettingsFragment.getInstance();
+                settingsFrag.show(ft, SettingsFragment.TAG);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -167,11 +171,12 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
     }
 
     private void showTracksFrag(String aName, String aId) {
-        TracksFragment track = TracksFragment.getInstance(getService(),this);
-        track.loadFragData(getService(), aName, aId);
-        getSupportFragmentManager().beginTransaction()
-            .replace(R.id.toptracks_container, track, TRACKS_FRAG)
-            .commit();
+        TracksFragment track = TracksFragment.getInstance(getService(), this);
+        track.loadFragData(getService(), aId);
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.addToBackStack(null);
+        ft.replace(R.id.toptracks_container, track, TRACKS_FRAG)
+                .commit();
     }
 
 
@@ -227,5 +232,18 @@ public class MainActivity extends BaseActivity implements SearchFragment.SearchC
     public Track getNextTrack() {
         TracksFragment frag = (TracksFragment)getSupportFragmentManager().findFragmentByTag(TRACKS_FRAG);
         return frag.getNextTrack();
+    }
+
+    @Override
+    public void onServiceError(Exception e) {
+        showServiceError(e);
+        //Check if in tablet mode AND tracks fragment is visible to prevent back exiting the app.
+        if(isTablet && getSupportFragmentManager().findFragmentByTag(PlayerFragment.TAG) != null)
+            onBackPressed();
+    }
+
+    @Override
+    public void onMediaPlayerError(Exception e) {
+        onServiceError(e);
     }
 }

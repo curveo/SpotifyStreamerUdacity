@@ -1,4 +1,4 @@
-package com.iprodev.spotifystreamer.view;
+package com.iprodev.spotifystreamer.model;
 
 import android.content.Context;
 import android.support.v7.widget.SearchView;

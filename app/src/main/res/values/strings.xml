@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">SpotifyStreamer</string>
     <string name="title_activity_artist">Top 10 tracks</string>
+    <string name="settings_title">Settings</string>
     <string name="action_settings">Settings</string>
     <string name="search_hint">Search by artist name</string>
     <string name="result_artist_title">Search Artist</string>
@@ -8,6 +9,11 @@
     <string name="no_tracks">No top tracks for this artist</string>
     <string name="no_more_tracks">No more tracks</string>
     <string name="alert_dialog_ok">OK</string>
+    <string name="country_text_title">Country Code:</string>
+    <string name="country_code_hint">Ex: US</string>
+    <string name="commit_btn">Save</string>
+    <string name="country_code_default_notify">Setting country code to default: us</string>
+    <string name="country_code_setting_saved">Country code set to: </string>
 
     <!-- Help texts -->
     <string name="spot_icon_help">spotify icon</string>
@@ -16,4 +22,8 @@
     <string name="player_play_help">Play Button</string>
     <string name="player_next_help">Next Button</string>
     <string name="player_prev_help">Previous Button</string>
+
+    <!-- Error strings-->
+    <string name="service_error">Error getting data from service: </string>
+    <string name="error_country_code_edit">Enter valid country code</string>
 </resources>

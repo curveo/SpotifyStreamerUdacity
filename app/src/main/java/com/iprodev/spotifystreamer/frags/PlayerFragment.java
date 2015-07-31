@@ -51,6 +51,7 @@ public class PlayerFragment extends DialogFragment {
     public interface TransportCallbacks {
         public Track getPreviousTrack();
         public Track getNextTrack();
+        public void onMediaPlayerError(Exception e);
     }
 
     public static PlayerFragment getInstance(TransportCallbacks callback, Bundle bnd, boolean isModal) {
@@ -259,7 +260,7 @@ public class PlayerFragment extends DialogFragment {
 
                 @Override
                 public void onPlayerException(SpotifyMediaPlayer.SpotifyMediaPlayerError error) {
-
+                    mCallback.onMediaPlayerError(error);
                 }
             });
         }
