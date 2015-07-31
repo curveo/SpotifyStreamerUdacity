@@ -37,7 +37,7 @@ public class ArtistActivity extends BaseActivity implements TracksFragment.Track
         setContentView(R.layout.activity_artist);
         TracksFragment frag = (TracksFragment) getSupportFragmentManager().findFragmentById(R.id.toptracks_fragment);
         frag.setCallback(this);
-        frag.loadFragData(getService(), mArtistName, artitsId);
+        frag.loadFragData(getService(), artitsId);
 
         ActionBar actionBar = getSupportActionBar();
         if(mArtistName != null)
@@ -106,22 +106,6 @@ public class ArtistActivity extends BaseActivity implements TracksFragment.Track
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_artist, menu);
         return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                //Lets use the activity backstack instead so the state of the search results is
-                // maintained.
-                onBackPressed();
-                return true;
-            case R.id.action_settings:
-                Toast.makeText(this, "No settings yet, implement me!", Toast.LENGTH_SHORT).show();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
     }
 
     @Override

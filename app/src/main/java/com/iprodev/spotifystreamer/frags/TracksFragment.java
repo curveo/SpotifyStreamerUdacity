@@ -1,6 +1,8 @@
 package com.iprodev.spotifystreamer.frags;
 
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -11,9 +13,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.iprodev.spotifystreamer.R;
 import com.iprodev.spotifystreamer.model.TracksAdapter;
+import com.iprodev.spotifystreamer.view.MainActivity;
 
 import java.util.ArrayList;
 import java.util.TreeMap;
@@ -36,6 +40,7 @@ public class TracksFragment extends Fragment {
     private SpotifyService mService;
     private TracksFragCallback mCallback;
     private int mSelectedPosition;
+    private String mAID;
 
     public interface TracksFragCallback {
         public void onTrackSelected(Track track);
@@ -56,9 +61,19 @@ public class TracksFragment extends Fragment {
         mCallback = callback;
     }
 
-    public void loadFragData(SpotifyService service, String aName, String aID) {
+    public void loadFragData(SpotifyService service, String aID) {
         mService = service;
-        loadTracks(aID);
+        if(null == getActivity()) {
+            mAID = aID;
+        } else {
+            loadTracks(aID);
+        }
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if(mAID != null) loadTracks(mAID);
     }
 
     @Nullable
@@ -105,7 +120,20 @@ public class TracksFragment extends Fragment {
                 try {
                     TreeMap<String, Object> params = new TreeMap<String, Object>();
                     //Must be included else api call will fail! This should probably be localized.
-                    params.put("country", "US");
+                    SharedPreferences prefs = getActivity().getSharedPreferences(SettingsFragment.PREFS, Context.MODE_PRIVATE);
+                    String code = prefs.getString(SettingsFragment.COUNTRY_CODE, null);
+                    if(code == null) {
+                        code = "us";
+                        //Set default to us
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(getActivity(),getString(R.string.country_code_default_notify),Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                        prefs.edit().putString(SettingsFragment.COUNTRY_CODE,code).commit();
+                    }
+                    params.put("country", code);
                     tracks = mService.getArtistTopTrack(artistIds[0], params);
                 } catch(RetrofitError e) { return e; }
                 return null;
